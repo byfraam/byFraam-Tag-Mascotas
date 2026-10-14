@@ -18,6 +18,40 @@
     <h1 style="font-size:36px">Panel de mascotas</h1>
     <p class="muted">Registrá mascotas, generá sus QR y revisá avisos recibidos.</p>
 
+    <section class="panel" id="siteSettingsPanel">
+      <h2>Personalización del sitio</h2>
+      <p class="muted">Estos ajustes se muestran en la página principal y en las fichas públicas de las mascotas.</p>
+      <form id="siteSettingsForm">
+        <h3>Marca e identidad</h3>
+        <div class="grid">
+          <div class="field"><label for="brandNameInput">Nombre visible de la marca</label><input id="brandNameInput" maxlength="80" value="by Fraam Mascotas"></div>
+          <div class="field"><label for="brandTaglineInput">Texto pequeño del encabezado</label><input id="brandTaglineInput" maxlength="80" value="TAG MASCOTAS"></div>
+          <div class="field full"><label for="logoFile">Logo (PNG, JPG o WebP; máximo 5 MB)</label><input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"><div id="logoPreviewWrap" class="muted" style="margin-top:10px" hidden><img id="logoPreview" alt="Vista previa del logo" style="max-width:220px;max-height:110px;object-fit:contain;background:#fff;border-radius:8px;padding:8px"><div class="row" style="margin-top:8px"><button id="removeLogo" type="button">Quitar logo</button></div></div></div>
+        </div>
+        <h3 style="margin-top:24px">Colores del sitio</h3>
+        <div class="grid">
+          <div class="field"><label for="colorBg">Fondo general</label><input id="colorBg" type="color" value="#101010"></div>
+          <div class="field"><label for="colorPanel">Fondo de tarjetas y paneles</label><input id="colorPanel" type="color" value="#1b1b1b"></div>
+          <div class="field"><label for="colorText">Texto principal</label><input id="colorText" type="color" value="#f5f5f5"></div>
+          <div class="field"><label for="colorMuted">Texto secundario</label><input id="colorMuted" type="color" value="#aaaaaa"></div>
+          <div class="field"><label for="colorAccent">Color de botones y destacados</label><input id="colorAccent" type="color" value="#d6ff65"></div>
+          <div class="field"><label for="colorBorder">Bordes</label><input id="colorBorder" type="color" value="#363636"></div>
+        </div>
+        <h3 style="margin-top:24px">Publicidad para vender Tags</h3>
+        <div class="field"><label><input id="adEnabled" type="checkbox" style="width:auto;margin-right:8px">Mostrar publicidad en la página principal y las fichas públicas</label></div>
+        <div class="grid">
+          <div class="field"><label for="adTitle">Título del anuncio</label><input id="adTitle" maxlength="120" placeholder="Un Tag QR para ayudarlo a volver a casa"></div>
+          <div class="field"><label for="adPrice">Precio (opcional)</label><input id="adPrice" maxlength="60" placeholder="Consultá por precio"></div>
+          <div class="field full"><label for="adDescription">Descripción</label><textarea id="adDescription" maxlength="500" placeholder="Contá cómo funciona y qué incluye el Tag."></textarea></div>
+          <div class="field"><label for="adWhatsApp">WhatsApp para consultas (solo números con país)</label><input id="adWhatsApp" maxlength="20" placeholder="549... "></div>
+          <div class="field"><label for="adButtonText">Texto del botón</label><input id="adButtonText" maxlength="50" value="Consultar por WhatsApp"></div>
+          <div class="field full"><label for="adImageFile">Imagen del Tag (opcional; PNG, JPG o WebP, máximo 5 MB)</label><input id="adImageFile" type="file" accept="image/png,image/jpeg,image/webp"><div id="adPreviewWrap" class="muted" style="margin-top:10px" hidden><img id="adPreview" alt="Vista previa del anuncio" style="max-width:280px;max-height:180px;object-fit:contain;border-radius:10px"><div class="row" style="margin-top:8px"><button id="removeAdImage" type="button">Quitar imagen</button></div></div></div>
+        </div>
+        <div class="row" style="margin-top:20px"><button class="primary" id="saveSiteSettings" type="submit">Guardar personalización</button><button id="resetSiteSettings" type="button">Restablecer valores predeterminados</button></div>
+        <p id="settingsMsg" class="msg" role="status"></p>
+      </form>
+    </section>
+
     <section class="panel">
       <h2 id="formTitle">Registrar mascota</h2>
       <form id="petForm">
@@ -85,6 +119,90 @@
   };
 
   let editing=null, lastQr=null;
+  const SETTINGS_PATH='site-settings.json';
+  const defaultSiteSettings={
+    brandName:'by Fraam Mascotas', brandTagline:'TAG MASCOTAS', logoUrl:'',
+    colors:{bg:'#101010',panel:'#1b1b1b',text:'#f5f5f5',muted:'#aaaaaa',accent:'#d6ff65',border:'#363636'},
+    ad:{enabled:false,title:'Identificá a tu mascota con un Tag QR',description:'Una identificación práctica para que quien la encuentre pueda acceder a su perfil y ayudarla a volver a casa.',price:'',whatsapp:'',buttonText:'Consultar por WhatsApp',imageUrl:''}
+  };
+  let siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));
+  const settingsEl=id=>document.getElementById(id);
+  function mergeSettings(raw){
+    const v=raw&&typeof raw==='object'?raw:{};
+    return {...defaultSiteSettings,...v,colors:{...defaultSiteSettings.colors,...(v.colors||{})},ad:{...defaultSiteSettings.ad,...(v.ad||{})}};
+  }
+  function setPreview(wrapId,imgId,url){
+    const wrap=settingsEl(wrapId),img=settingsEl(imgId);
+    if(url){img.src=url;wrap.hidden=false;}else{img.removeAttribute('src');wrap.hidden=true;}
+  }
+  function fillSettingsForm(){
+    settingsEl('brandNameInput').value=siteSettings.brandName||'';
+    settingsEl('brandTaglineInput').value=siteSettings.brandTagline||'';
+    settingsEl('colorBg').value=siteSettings.colors.bg;
+    settingsEl('colorPanel').value=siteSettings.colors.panel;
+    settingsEl('colorText').value=siteSettings.colors.text;
+    settingsEl('colorMuted').value=siteSettings.colors.muted;
+    settingsEl('colorAccent').value=siteSettings.colors.accent;
+    settingsEl('colorBorder').value=siteSettings.colors.border;
+    settingsEl('adEnabled').checked=!!siteSettings.ad.enabled;
+    settingsEl('adTitle').value=siteSettings.ad.title||'';
+    settingsEl('adDescription').value=siteSettings.ad.description||'';
+    settingsEl('adPrice').value=siteSettings.ad.price||'';
+    settingsEl('adWhatsApp').value=siteSettings.ad.whatsapp||'';
+    settingsEl('adButtonText').value=siteSettings.ad.buttonText||'Consultar por WhatsApp';
+    setPreview('logoPreviewWrap','logoPreview',siteSettings.logoUrl);
+    setPreview('adPreviewWrap','adPreview',siteSettings.ad.imageUrl);
+  }
+  async function loadSiteSettings(){
+    try{
+      const url=db.storage.from('pet-photos').getPublicUrl(SETTINGS_PATH).data.publicUrl+'?v='+Date.now();
+      const response=await fetch(url,{cache:'no-store'});
+      if(response.ok)siteSettings=mergeSettings(await response.json());
+    }catch(err){console.warn('Se usarán los ajustes predeterminados del sitio:',err);}
+    fillSettingsForm();
+  }
+  function uploadExt(file){return file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';}
+  async function uploadBrandAsset(file,kind){
+    if(!file)return null;
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Las imágenes deben ser JPG, PNG o WebP.');
+    if(file.size>5*1024*1024)throw new Error('Cada imagen debe pesar 5 MB o menos.');
+    const path='branding/'+kind+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'.'+uploadExt(file);
+    const {error}=await db.storage.from('pet-photos').upload(path,file,{upsert:false,contentType:file.type,cacheControl:'3600'});
+    if(error)throw error;
+    return db.storage.from('pet-photos').getPublicUrl(path).data.publicUrl;
+  }
+  settingsEl('logoFile').addEventListener('change',()=>{const f=settingsEl('logoFile').files[0];if(f)setPreview('logoPreviewWrap','logoPreview',URL.createObjectURL(f));});
+  settingsEl('adImageFile').addEventListener('change',()=>{const f=settingsEl('adImageFile').files[0];if(f)setPreview('adPreviewWrap','adPreview',URL.createObjectURL(f));});
+  settingsEl('removeLogo').onclick=()=>{siteSettings.logoUrl='';settingsEl('logoFile').value='';setPreview('logoPreviewWrap','logoPreview','');};
+  settingsEl('removeAdImage').onclick=()=>{siteSettings.ad.imageUrl='';settingsEl('adImageFile').value='';setPreview('adPreviewWrap','adPreview','');};
+  settingsEl('resetSiteSettings').onclick=()=>{
+    if(!confirm('¿Restablecer logo, colores y publicidad a los valores predeterminados? Guardá los cambios para publicarlos.'))return;
+    siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));fillSettingsForm();
+    settingsEl('logoFile').value='';settingsEl('adImageFile').value='';
+    C.msg('settingsMsg','Valores predeterminados cargados. Presioná Guardar personalización para aplicarlos.','');
+  };
+  settingsEl('siteSettingsForm').onsubmit=async e=>{
+    e.preventDefault();const b=settingsEl('saveSiteSettings');b.disabled=true;C.msg('settingsMsg','Guardando personalización…','');
+    try{
+      const logoFile=settingsEl('logoFile').files[0],adFile=settingsEl('adImageFile').files[0];
+      if(logoFile)siteSettings.logoUrl=await uploadBrandAsset(logoFile,'logo');
+      if(adFile)siteSettings.ad.imageUrl=await uploadBrandAsset(adFile,'tag');
+      siteSettings={
+        brandName:settingsEl('brandNameInput').value.trim()||'by Fraam Mascotas',
+        brandTagline:settingsEl('brandTaglineInput').value.trim()||'TAG MASCOTAS',
+        logoUrl:siteSettings.logoUrl||'',
+        colors:{bg:settingsEl('colorBg').value,panel:settingsEl('colorPanel').value,text:settingsEl('colorText').value,muted:settingsEl('colorMuted').value,accent:settingsEl('colorAccent').value,border:settingsEl('colorBorder').value},
+        ad:{enabled:settingsEl('adEnabled').checked,title:settingsEl('adTitle').value.trim(),description:settingsEl('adDescription').value.trim(),price:settingsEl('adPrice').value.trim(),whatsapp:settingsEl('adWhatsApp').value.replace(/\D/g,''),buttonText:settingsEl('adButtonText').value.trim()||'Consultar por WhatsApp',imageUrl:siteSettings.ad.imageUrl||''}
+      };
+      const blob=new Blob([JSON.stringify(siteSettings,null,2)],{type:'application/json'});
+      const {error}=await db.storage.from('pet-photos').upload(SETTINGS_PATH,blob,{upsert:true,contentType:'application/json',cacheControl:'0'});
+      if(error)throw error;
+      settingsEl('logoFile').value='';settingsEl('adImageFile').value='';fillSettingsForm();
+      C.msg('settingsMsg','Personalización guardada. Ya se mostrará en la página principal y en los perfiles públicos.','ok');
+    }catch(err){console.error(err);C.msg('settingsMsg','No se pudo guardar. '+(err.message||'Revisá la conexión y los permisos del almacenamiento.'),'error');}
+    finally{b.disabled=false;}
+  };
+  await loadSiteSettings();
 
   function node(tag,text,cls){
     const n=document.createElement(tag);

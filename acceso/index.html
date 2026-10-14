@@ -247,10 +247,10 @@
               redirectTo: redirectTo
             });
 
-          if (error) {
-            informar("No se pudo enviar el correo. Revisá la configuración de Supabase.");
-            return;
-          }
+if (error) {
+  informar("Error de Supabase: " + error.message);
+  return;
+}
 
           informar(
             "Si el correo corresponde a una cuenta registrada, recibirás instrucciones para restablecer la contraseña. Revisá también el correo no deseado."

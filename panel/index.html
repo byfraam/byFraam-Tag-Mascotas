@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="es">
 <head>
@@ -9,423 +8,285 @@
 </head>
 <body>
 <header class="top">
-<a class="brand" href="../">by <b>Fraam</b></a>
-<span>ADMINISTRACIÓN</span>
-<button id="logout">Cerrar sesión</button>
+  <a class="brand" href="../">by <b>Fraam</b></a>
+  <span>ADMINISTRACIÓN</span>
+  <button id="logout" type="button">Cerrar sesión</button>
 </header>
-
 <main class="page">
-<div id="loading" class="panel">Verificando permisos...</div>
+  <div id="loading" class="panel">Verificando permisos...</div>
+  <section id="app" hidden>
+    <h1 style="font-size:36px">Panel de mascotas</h1>
+    <p class="muted">Registrá mascotas, generá sus QR y revisá avisos recibidos.</p>
 
-<section id="app" hidden>
-<h1 style="font-size:36px">Panel de mascotas</h1>
-<p class="muted">Registrá mascotas, generá sus QR y revisá avisos recibidos.</p>
+    <section class="panel">
+      <h2 id="formTitle">Registrar mascota</h2>
+      <form id="petForm">
+        <input id="petId" type="hidden">
+        <div class="grid">
+          <div class="field"><label for="name">Nombre *</label><input id="name" maxlength="100" required></div>
+          <div class="field"><label for="species">Especie *</label><select id="species"><option>Perro</option><option>Gato</option><option>Otra</option></select></div>
+          <div class="field"><label for="breed">Raza</label><input id="breed" maxlength="100"></div>
+          <div class="field"><label for="photo">Foto de la mascota</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG, PNG o WebP. Máximo 5 MB.</small><div id="currentPhoto" class="muted"></div></div>
+          <div class="field full"><label for="description">Descripción pública</label><textarea id="description" maxlength="1000"></textarea></div>
+          <div class="field"><label for="ownerName">Responsable (privado)</label><input id="ownerName" maxlength="100"></div>
+          <div class="field"><label for="ownerPhone">Teléfono privado (no público)</label><input id="ownerPhone" maxlength="40"></div>
+          <div class="field"><label for="publicPhone">Teléfono público autorizado</label><input id="publicPhone" maxlength="30"></div>
+          <div class="field"><label for="whatsapp">WhatsApp público (código país, solo números)</label><input id="whatsapp" maxlength="20" placeholder="549..."></div>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <button class="primary" id="savePet" type="submit">Guardar mascota</button>
+          <button id="cancelEdit" type="button" hidden>Cancelar edición</button>
+        </div>
+        <p id="petMsg" class="msg" role="status"></p>
+      </form>
 
-<section class="panel">
-<h2 id="formTitle">Registrar mascota</h2>
-<form id="petForm">
-<input id="petId" type="hidden">
+      <div id="qrResult" class="item" hidden>
+        <strong>Perfil creado</strong>
+        <p id="qrUrl"></p>
+        <canvas id="qrCanvas" width="260" height="260" aria-label="Código QR del perfil"></canvas>
+        <div class="row" style="margin-top:12px">
+          <button id="downloadQr" class="primary" type="button" disabled>Descargar QR PNG</button>
+          <a id="openProfile" class="btn" target="_blank" rel="noopener">Abrir perfil</a>
+        </div>
+      </div>
+    </section>
 
-<div class="grid">
-<div class="field">
-<label for="name">Nombre *</label>
-<input id="name" maxlength="100" required>
-</div>
+    <section class="panel">
+      <div class="row" style="justify-content:space-between"><h2>Mascotas registradas</h2><button id="refreshPets" type="button">Actualizar</button></div>
+      <div id="pets" class="list"></div>
+    </section>
 
-<div class="field">
-<label for="species">Especie *</label>
-<select id="species">
-<option>Perro</option>
-<option>Gato</option>
-<option>Otra</option>
-</select>
-</div>
-
-<div class="field">
-<label for="breed">Raza</label>
-<input id="breed" maxlength="100">
-</div>
-
-<div class="field">
-<label for="photo">Foto de la mascota</label>
-<input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
-<small class="muted">JPG, PNG o WebP. Máximo 5 MB.</small>
-<div id="currentPhoto" class="muted"></div>
-</div>
-
-<div class="field full">
-<label for="description">Descripción pública</label>
-<textarea id="description" maxlength="1000"></textarea>
-</div>
-
-<div class="field">
-<label for="ownerName">Responsable (privado)</label>
-<input id="ownerName" maxlength="100">
-</div>
-
-<div class="field">
-<label for="ownerPhone">Teléfono privado (no público)</label>
-<input id="ownerPhone" maxlength="40">
-</div>
-
-<div class="field">
-<label for="publicPhone">Teléfono público autorizado</label>
-<input id="publicPhone" maxlength="30">
-</div>
-
-<div class="field">
-<label for="whatsapp">WhatsApp público (código país, solo números)</label>
-<input id="whatsapp" maxlength="20" placeholder="549...">
-</div>
-</div>
-
-<div class="row" style="margin-top:18px">
-<button class="primary" id="savePet" type="submit">Guardar mascota</button>
-<button type="button" id="cancelEdit" hidden>Cancelar edición</button>
-</div>
-<p id="petMsg" class="msg" role="status"></p>
-</form>
-
-<div id="qrResult" class="item" hidden>
-<strong>Perfil creado</strong>
-<p id="qrUrl"></p>
-<canvas id="qrCanvas"></canvas>
-<div class="row" style="margin-top:12px">
-<button id="downloadQr" class="primary" type="button">Descargar QR PNG</button>
-<a id="openProfile" class="btn" target="_blank" rel="noopener">Abrir perfil</a>
-</div>
-</div>
-</section>
-
-<section class="panel">
-<div class="row" style="justify-content:space-between">
-<h2>Mascotas registradas</h2>
-<button id="refreshPets" type="button">Actualizar</button>
-</div>
-<div id="pets" class="list"></div>
-</section>
-
-<section class="panel">
-<div class="row" style="justify-content:space-between">
-<h2>Avisos recibidos</h2>
-<button id="refreshReports" type="button">Actualizar avisos</button>
-</div>
-<div id="reports" class="list"></div>
-</section>
-</section>
+    <section class="panel">
+      <div class="row" style="justify-content:space-between"><h2>Avisos recibidos</h2><button id="refreshReports" type="button">Actualizar avisos</button></div>
+      <div id="reports" class="list"></div>
+    </section>
+  </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.4/qrcode.min.js"></script>
+<!-- Importante: paquete npm qrcode; esta versión expone QRCode.toCanvas -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="../js/config.js"></script>
 <script src="../js/supabase.js"></script>
 <script src="../js/common.js"></script>
-
 <script>
 (async()=>{
-const db=window.BF,C=window.BFCommon,el=C.el;
-
-try{
- await C.requireAdmin();
- el('loading').hidden=true;
- el('app').hidden=false;
-}catch(e){
- el('loading').textContent=e.message;
- return;
-}
-
-el('logout').onclick=async()=>{
- await db.auth.signOut();
- location.href='../acceso/';
-};
-
-let editing=null,lastQr=null;
-
-function node(tag,text,cls){
- const n=document.createElement(tag);
- if(text!==undefined)n.textContent=text;
- if(cls)n.className=cls;
- return n;
-}
-
-function resetForm(){
- el('petForm').reset();
- el('petId').value='';
- editing=null;
- el('formTitle').textContent='Registrar mascota';
- el('savePet').textContent='Guardar mascota';
- el('cancelEdit').hidden=true;
- el('currentPhoto').textContent='';
- el('petMsg').textContent='';
-}
-
-el('cancelEdit').onclick=resetForm;
-
-el('petForm').onsubmit=async e=>{
- e.preventDefault();
- const b=el('savePet');
- b.disabled=true;
- C.msg('petMsg','Guardando...','');
-
- try{
-  const id=el('petId').value||null;
-  const payload={
-   name:el('name').value.trim(),
-   species:el('species').value,
-   breed:el('breed').value.trim()||null,
-   description:el('description').value.trim()||null,
-   owner_name:el('ownerName').value.trim()||null,
-   owner_phone:el('ownerPhone').value.trim()||null,
-   public_contact_phone:el('publicPhone').value.trim()||null,
-   public_whatsapp:el('whatsapp').value.replace(/\D/g,'')||null
-  };
-
-  if(!payload.name)throw new Error('Ingresá el nombre de la mascota.');
-
-  const file=el('photo').files[0];
-
-  if(file){
-   if(!['image/jpeg','image/png','image/webp'].includes(file.type))
-    throw new Error('La foto debe ser JPG, PNG o WebP.');
-
-   if(file.size>5*1024*1024)
-    throw new Error('La foto supera 5 MB.');
-
-   const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
-   const path=(id||crypto.randomUUID())+'/'+Date.now()+'.'+ext;
-
-   const {error:upErr}=await db.storage.from('pet-photos').upload(
-    path,file,{upsert:true,contentType:file.type}
-   );
-
-   if(upErr)throw upErr;
-
-   const {data:u}=db.storage.from('pet-photos').getPublicUrl(path);
-   payload.photo_url=u.publicUrl;
-  }
-
-  let result;
-
-  if(id){
-   result=await db.from('pets').update(payload).eq('id',id)
-    .select('id,tag_code,name').single();
-  }else{
-   result=await db.from('pets').insert(payload)
-    .select('id,tag_code,name').single();
-  }
-
-  if(result.error)throw result.error;
-
-  C.msg('petMsg','Mascota guardada correctamente.','ok');
-
-  if(!id){
-   await showQR(result.data.tag_code,result.data.name);
-  }else{
-   C.msg('petMsg','Cambios guardados correctamente. El código QR se mantiene igual.','ok');
-  }
-
-  resetForm();
-  await loadPets();
-
- }catch(err){
-  console.error(err);
-  C.msg('petMsg',err.message||'No se pudo guardar la mascota.','error');
- }finally{
-  b.disabled=false;
- }
-};
-
-/* QR: los controles se preparan antes de generar la imagen */
-async function showQR(tag,name){
- const url=C.profileUrl(tag);
- lastQr={url,name,tag};
-
- el('qrResult').hidden=false;
- el('qrUrl').textContent=url;
- el('openProfile').href=url;
-
- el('downloadQr').onclick=()=>{
-  const canvas=el('qrCanvas');
-
-  if(!canvas.width||!canvas.height){
-   alert('El QR todavía no está generado. Intentá generarlo nuevamente.');
-   return;
-  }
-
-  try{
-   const a=document.createElement('a');
-   a.href=canvas.toDataURL('image/png');
-   a.download='QR-'+String(name||'mascota').replace(/[^a-z0-9_-]+/gi,'-')+'.png';
-   document.body.appendChild(a);
-   a.click();
-   a.remove();
-  }catch(err){
-   console.error(err);
-   alert('No se pudo descargar el QR.');
-  }
- };
-
- el('qrResult').scrollIntoView({behavior:'smooth',block:'center'});
-
- try{
-  if(!window.QRCode||typeof window.QRCode.toCanvas!=='function'){
-   throw new Error('No se pudo cargar la librería QR. Revisá tu conexión y recargá el panel.');
-  }
-
-  await window.QRCode.toCanvas(el('qrCanvas'),url,{
-   width:260,
-   margin:2,
-   errorCorrectionLevel:'H'
-  });
-
- }catch(err){
-  console.error('Error al generar QR:',err);
-  alert(err.message||'No se pudo generar el QR.');
- }
-}
-
-async function loadPets(){
- const box=el('pets');
- box.replaceChildren(node('p','Cargando mascotas...','muted'));
-
- const {data,error}=await db.from('pets').select('*')
-  .order('created_at',{ascending:false}).limit(200);
-
- if(error){
-  box.replaceChildren(node('p',error.message,'msg error'));
-  return;
- }
-
- if(!data.length){
-  box.replaceChildren(node('p','Todavía no hay mascotas registradas.','muted'));
-  return;
- }
-
- box.replaceChildren();
-
- data.forEach(p=>{
-  const item=node('article',undefined,'item');
-
-  item.append(
-   node('span',p.is_missing?'REPORTADA COMO PERDIDA':'ACTIVA','pill'),
-   node('h3',p.name),
-   node('p',[p.species,p.breed].filter(Boolean).join(' · ')),
-   node('p','Código: '+p.tag_code)
-  );
-
-  const url=C.profileUrl(p.tag_code);
-  const link=node('a','Abrir perfil');
-  link.href=url;
-  link.target='_blank';
-  link.rel='noopener';
-  item.append(link);
-
-  const actions=node('div',undefined,'row');
-  actions.style.marginTop='12px';
-
-  const qr=node('button','Generar/descargar QR');
-  qr.type='button';
-  qr.onclick=()=>showQR(p.tag_code,p.name);
-
-  const edit=node('button','Editar');
-  edit.type='button';
-  edit.onclick=()=>{
-   editing=p;
-   el('petId').value=p.id;
-   el('name').value=p.name||'';
-   el('species').value=p.species||'Otra';
-   el('breed').value=p.breed||'';
-   el('description').value=p.description||'';
-   el('ownerName').value=p.owner_name||'';
-   el('ownerPhone').value=p.owner_phone||'';
-   el('publicPhone').value=p.public_contact_phone||'';
-   el('whatsapp').value=p.public_whatsapp||'';
-   el('currentPhoto').textContent=p.photo_url?'Foto actual guardada. Si no seleccionás otra, se conserva.':'';
-   el('formTitle').textContent='Editar: '+p.name;
-   el('savePet').textContent='Guardar cambios';
-   el('cancelEdit').hidden=false;
-   el('petForm').scrollIntoView({behavior:'smooth'});
-  };
-
-  const missing=node('button',p.is_missing?'Marcar encontrada':'Marcar perdida');
-  missing.type='button';
-  missing.onclick=async()=>{
-   missing.disabled=true;
-   const {error}=await db.from('pets').update({is_missing:!p.is_missing}).eq('id',p.id);
-   if(error)alert(error.message);
-   await loadPets();
-  };
-
-  const del=node('button','Eliminar','danger');
-  del.type='button';
-  del.onclick=async()=>{
-   if(!confirm('¿Eliminar definitivamente el registro de '+p.name+'? Esta acción no se puede deshacer.'))return;
-   const {error}=await db.from('pets').delete().eq('id',p.id);
-   if(error){
-    alert(error.message);
+  const db=window.BF, C=window.BFCommon, el=C.el;
+  try {
+    await C.requireAdmin();
+    el('loading').hidden=true;
+    el('app').hidden=false;
+  } catch(e) {
+    el('loading').textContent=e.message;
     return;
-   }
-   await loadPets();
+  }
+
+  el('logout').onclick=async()=>{
+    await db.auth.signOut();
+    location.href='../acceso/';
   };
 
-  actions.append(qr,edit,missing,del);
-  item.append(actions);
-  box.append(item);
- });
-}
+  let editing=null, lastQr=null;
 
-async function loadReports(){
- const box=el('reports');
- box.replaceChildren(node('p','Consultando avisos...','muted'));
+  function node(tag,text,cls){
+    const n=document.createElement(tag);
+    if(text!==undefined)n.textContent=text;
+    if(cls)n.className=cls;
+    return n;
+  }
 
- const {data,error}=await db.from('found_reports')
-  .select('id,pet_id,finder_name,finder_phone,message,location_text,status,created_at,pets(name,tag_code)')
-  .order('created_at',{ascending:false}).limit(200);
+  function resetForm(){
+    el('petForm').reset();
+    el('petId').value='';
+    editing=null;
+    el('formTitle').textContent='Registrar mascota';
+    el('savePet').textContent='Guardar mascota';
+    el('cancelEdit').hidden=true;
+    el('currentPhoto').textContent='';
+    el('petMsg').textContent='';
+  }
+  el('cancelEdit').onclick=resetForm;
 
- if(error){
-  box.replaceChildren(node('p',error.message,'msg error'));
-  return;
- }
-
- if(!data.length){
-  box.replaceChildren(node('p','Todavía no se recibieron avisos.','muted'));
-  return;
- }
-
- box.replaceChildren();
-
- data.forEach(r=>{
-  const item=node('article',undefined,'item');
-
-  item.append(
-   node('span',(r.status||'nuevo').toUpperCase(),'pill'),
-   node('h3','Mascota: '+(r.pets?.name||'Sin nombre')),
-   node('p','Persona: '+(r.finder_name||'No indicado')),
-   node('p','Teléfono: '+(r.finder_phone||'No indicado')),
-   node('p','Ubicación: '+(r.location_text||'No indicada')),
-   node('p','Mensaje: '+(r.message||'Sin mensaje')),
-   node('p','Recibido: '+new Date(r.created_at).toLocaleString('es-AR'))
-  );
-
-  const b=node('button','Marcar revisado');
-  b.type='button';
-  b.onclick=async()=>{
-   const {error}=await db.from('found_reports')
-    .update({status:'reviewed'}).eq('id',r.id);
-   if(error)alert(error.message);
-   await loadReports();
+  el('petForm').onsubmit=async e=>{
+    e.preventDefault();
+    const b=el('savePet');
+    b.disabled=true;
+    C.msg('petMsg','Guardando...','');
+    try{
+      const id=el('petId').value||null;
+      const payload={
+        name:el('name').value.trim(),
+        species:el('species').value,
+        breed:el('breed').value.trim()||null,
+        description:el('description').value.trim()||null,
+        owner_name:el('ownerName').value.trim()||null,
+        owner_phone:el('ownerPhone').value.trim()||null,
+        public_contact_phone:el('publicPhone').value.trim()||null,
+        public_whatsapp:el('whatsapp').value.replace(/\D/g,'')||null
+      };
+      if(!payload.name)throw new Error('Ingresá el nombre de la mascota.');
+      const file=el('photo').files[0];
+      if(file){
+        if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('La foto debe ser JPG, PNG o WebP.');
+        if(file.size>5*1024*1024)throw new Error('La foto supera 5 MB.');
+        const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+        const path=(id||crypto.randomUUID())+'/'+Date.now()+'.'+ext;
+        const {error:upErr}=await db.storage.from('pet-photos').upload(path,file,{upsert:true,contentType:file.type});
+        if(upErr)throw upErr;
+        const {data:u}=db.storage.from('pet-photos').getPublicUrl(path);
+        payload.photo_url=u.publicUrl;
+      }
+      let result;
+      if(id){
+        result=await db.from('pets').update(payload).eq('id',id).select('id,tag_code,name').single();
+      }else{
+        result=await db.from('pets').insert(payload).select('id,tag_code,name').single();
+      }
+      if(result.error)throw result.error;
+      C.msg('petMsg','Mascota guardada correctamente.','ok');
+      if(!id)await showQR(result.data.tag_code,result.data.name);
+      else C.msg('petMsg','Cambios guardados correctamente. El código QR se mantiene igual.','ok');
+      resetForm();
+      await loadPets();
+    }catch(err){
+      console.error(err);
+      C.msg('petMsg',err.message||'No se pudo guardar la mascota.','error');
+    }finally{
+      b.disabled=false;
+    }
   };
 
-  item.append(b);
-  box.append(item);
- });
-}
+  // Genera el QR, mantiene el enlace disponible y solo permite descargar un canvas válido.
+  async function showQR(tag,name){
+    const url=C.profileUrl(tag);
+    lastQr={url,name,tag};
+    const result=el('qrResult');
+    const canvas=el('qrCanvas');
+    const open=el('openProfile');
+    const download=el('downloadQr');
+    result.hidden=false;
+    el('qrUrl').textContent=url;
+    open.href=url;
+    download.disabled=true;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    canvas.width=260;
+    canvas.height=260;
+    result.scrollIntoView({behavior:'smooth',block:'center'});
+    try{
+      if(!window.QRCode||typeof window.QRCode.toCanvas!=='function'){
+        throw new Error('No se cargó la librería QR. Comprobá la conexión y que el script QR esté cargando correctamente.');
+      }
+      await window.QRCode.toCanvas(canvas,url,{
+        width:260,
+        margin:3,
+        errorCorrectionLevel:'H',
+        color:{dark:'#000000',light:'#ffffff'}
+      });
+      download.disabled=false;
+      download.onclick=()=>{
+        try{
+          const link=document.createElement('a');
+          link.href=canvas.toDataURL('image/png');
+          link.download='QR-'+String(name||'mascota').replace(/[^a-z0-9_-]+/gi,'-')+'.png';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }catch(err){
+          console.error('Error al descargar QR:',err);
+          alert('No se pudo descargar el QR. Volvé a generarlo e intentá otra vez.');
+        }
+      };
+    }catch(err){
+      console.error('Error al generar QR:',err);
+      download.disabled=true;
+      alert(err.message||'No se pudo generar el QR.');
+    }
+  }
 
-el('refreshPets').onclick=loadPets;
-el('refreshReports').onclick=loadReports;
+  async function loadPets(){
+    const box=el('pets');
+    box.replaceChildren(node('p','Cargando mascotas...','muted'));
+    const {data,error}=await db.from('pets').select('*').order('created_at',{ascending:false}).limit(200);
+    if(error){box.replaceChildren(node('p',error.message,'msg error'));return;}
+    if(!data.length){box.replaceChildren(node('p','Todavía no hay mascotas registradas.','muted'));return;}
+    box.replaceChildren();
+    data.forEach(p=>{
+      const item=node('article',undefined,'item');
+      item.append(node('span',p.is_missing?'REPORTADA COMO PERDIDA':'ACTIVA','pill'),node('h3',p.name),node('p',[p.species,p.breed].filter(Boolean).join(' · ')),node('p','Código: '+p.tag_code));
+      const url=C.profileUrl(p.tag_code);
+      const link=node('a','Abrir perfil');
+      link.href=url;link.target='_blank';link.rel='noopener';item.append(link);
+      const actions=node('div',undefined,'row');
+      actions.style.marginTop='12px';
+      const qr=node('button','Generar/descargar QR');
+      qr.type='button';qr.onclick=()=>showQR(p.tag_code,p.name);
+      const edit=node('button','Editar');
+      edit.type='button';
+      edit.onclick=()=>{
+        editing=p;
+        el('petId').value=p.id;
+        el('name').value=p.name||'';
+        el('species').value=p.species||'Otra';
+        el('breed').value=p.breed||'';
+        el('description').value=p.description||'';
+        el('ownerName').value=p.owner_name||'';
+        el('ownerPhone').value=p.owner_phone||'';
+        el('publicPhone').value=p.public_contact_phone||'';
+        el('whatsapp').value=p.public_whatsapp||'';
+        el('currentPhoto').textContent=p.photo_url?'Foto actual guardada. Si no seleccionás otra, se conserva.':'';
+        el('formTitle').textContent='Editar: '+p.name;
+        el('savePet').textContent='Guardar cambios';
+        el('cancelEdit').hidden=false;
+        el('petForm').scrollIntoView({behavior:'smooth'});
+      };
+      const missing=node('button',p.is_missing?'Marcar encontrada':'Marcar perdida');
+      missing.type='button';
+      missing.onclick=async()=>{
+        missing.disabled=true;
+        const {error}=await db.from('pets').update({is_missing:!p.is_missing}).eq('id',p.id);
+        if(error)alert(error.message);
+        await loadPets();
+      };
+      const del=node('button','Eliminar','danger');
+      del.type='button';
+      del.onclick=async()=>{
+        if(!confirm('¿Eliminar definitivamente el registro de '+p.name+'? Esta acción no se puede deshacer.'))return;
+        const {error}=await db.from('pets').delete().eq('id',p.id);
+        if(error){alert(error.message);return;}
+        await loadPets();
+      };
+      actions.append(qr,edit,missing,del);
+      item.append(actions);
+      box.append(item);
+    });
+  }
 
-await loadPets();
-await loadReports();
+  async function loadReports(){
+    const box=el('reports');
+    box.replaceChildren(node('p','Consultando avisos...','muted'));
+    const {data,error}=await db.from('found_reports').select('id,pet_id,finder_name,finder_phone,message,location_text,status,created_at,pets(name,tag_code)').order('created_at',{ascending:false}).limit(200);
+    if(error){box.replaceChildren(node('p',error.message,'msg error'));return;}
+    if(!data.length){box.replaceChildren(node('p','Todavía no se recibieron avisos.','muted'));return;}
+    box.replaceChildren();
+    data.forEach(r=>{
+      const item=node('article',undefined,'item');
+      item.append(node('span',(r.status||'nuevo').toUpperCase(),'pill'),node('h3','Mascota: '+(r.pets?.name||'Sin nombre')),node('p','Persona: '+(r.finder_name||'No indicado')),node('p','Teléfono: '+(r.finder_phone||'No indicado')),node('p','Ubicación: '+(r.location_text||'No indicada')),node('p','Mensaje: '+(r.message||'Sin mensaje')),node('p','Recibido: '+new Date(r.created_at).toLocaleString('es-AR')));
+      const b=node('button','Marcar revisado');
+      b.type='button';
+      b.onclick=async()=>{
+        const {error}=await db.from('found_reports').update({status:'reviewed'}).eq('id',r.id);
+        if(error)alert(error.message);
+        await loadReports();
+      };
+      item.append(b);box.append(item);
+    });
+  }
+
+  el('refreshPets').onclick=loadPets;
+  el('refreshReports').onclick=loadReports;
+  await loadPets();
+  await loadReports();
 })();
 </script>
 </body>

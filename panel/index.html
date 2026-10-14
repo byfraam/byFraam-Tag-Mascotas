@@ -43,7 +43,7 @@
       <div id="qrResult" class="item" hidden>
         <strong>Perfil creado</strong>
         <p id="qrUrl"></p>
-        <canvas id="qrCanvas" width="260" height="260" aria-label="Código QR del perfil"></canvas>
+        <img id="qrCanvas" width="260" height="260" alt="Código QR del perfil" style="display:block;width:260px;height:260px;max-width:100%;background:#fff;object-fit:contain">
         <div class="row" style="margin-top:12px">
           <button id="downloadQr" class="primary" type="button" disabled>Descargar QR PNG</button>
           <a id="openProfile" class="btn" target="_blank" rel="noopener">Abrir perfil</a>
@@ -64,8 +64,6 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<!-- Bundle UMD para navegador: expone window.QRCode.toCanvas. Usa un CDN alternativo si el primero falla. -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js'"></script>
 <script src="../js/config.js"></script>
 <script src="../js/supabase.js"></script>
 <script src="../js/common.js"></script>
@@ -156,52 +154,46 @@
     }
   };
 
-  // Genera el QR, mantiene el enlace disponible y solo permite descargar un canvas válido.
+  // Genera el QR como imagen desde QRServer; no depende de una librería JavaScript/CDN.
   async function showQR(tag,name){
     const url=C.profileUrl(tag);
     lastQr={url,name,tag};
     const result=el('qrResult');
-    const canvas=el('qrCanvas');
+    const img=el('qrCanvas');
     const open=el('openProfile');
     const download=el('downloadQr');
     result.hidden=false;
     el('qrUrl').textContent=url;
     open.href=url;
     download.disabled=true;
-    const ctx=canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    canvas.width=260;
-    canvas.height=260;
+    img.removeAttribute('src');
+    img.alt='Generando código QR…';
     result.scrollIntoView({behavior:'smooth',block:'center'});
-    try{
-      if(!window.QRCode||typeof window.QRCode.toCanvas!=='function'){
-        throw new Error('No se cargó la librería QR. Comprobá la conexión y que el script QR esté cargando correctamente.');
-      }
-      await window.QRCode.toCanvas(canvas,url,{
-        width:260,
-        margin:3,
-        errorCorrectionLevel:'H',
-        color:{dark:'#000000',light:'#ffffff'}
-      });
-      download.disabled=false;
-      download.onclick=()=>{
-        try{
-          const link=document.createElement('a');
-          link.href=canvas.toDataURL('image/png');
-          link.download='QR-'+String(name||'mascota').replace(/[^a-z0-9_-]+/gi,'-')+'.png';
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-        }catch(err){
-          console.error('Error al descargar QR:',err);
-          alert('No se pudo descargar el QR. Volvé a generarlo e intentá otra vez.');
-        }
-      };
-    }catch(err){
-      console.error('Error al generar QR:',err);
+    const qrImageUrl='https://api.qrserver.com/v1/create-qr-code/?size=260x260&format=png&margin=10&data='+encodeURIComponent(url);
+    img.onload=()=>{ img.alt='Código QR del perfil'; download.disabled=false; };
+    img.onerror=()=>{
       download.disabled=true;
-      alert(err.message||'No se pudo generar el QR.');
-    }
+      img.alt='No se pudo cargar el QR. Comprobá la conexión a internet.';
+      console.error('No se pudo obtener la imagen QR desde QRServer.');
+      alert('No se pudo generar la imagen QR. Comprobá que tengas conexión a internet y volvé a intentarlo.');
+    };
+    img.src=qrImageUrl;
+    download.onclick=async()=>{
+      try{
+        const response=await fetch(qrImageUrl);
+        if(!response.ok) throw new Error('El servicio QR no respondió correctamente.');
+        const blob=await response.blob();
+        const objectUrl=URL.createObjectURL(blob);
+        const link=document.createElement('a');
+        link.href=objectUrl;
+        link.download='QR-'+String(name||'mascota').replace(/[^a-z0-9_-]+/gi,'-')+'.png';
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(()=>URL.revokeObjectURL(objectUrl),1500);
+      }catch(err){
+        console.error('Descarga directa del QR falló:',err);
+        window.open(qrImageUrl,'_blank','noopener');
+      }
+    };
   }
 
   async function loadPets(){

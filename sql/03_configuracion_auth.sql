@@ -1,0 +1,14 @@
+-- Referencia de configuración; no es SQL para ejecutar.
+-- Supabase Dashboard → Authentication → URL Configuration
+-- Site URL: https://USUARIO.github.io/NOMBRE-REPOSITORIO/
+-- Redirect URL permitida: https://USUARIO.github.io/NOMBRE-REPOSITORIO/acceso/recuperar.html
+-- Si se usa dominio propio, agregar también sus URLs exactas.
+
+-- Plantilla de recuperación recomendada si la pantalla de plantillas permite editar:
+-- Subject: Reset your password
+-- HTML:
+-- <h2>Restablecer contraseña</h2>
+-- <p>Ingresá este código en la página de recuperación:</p>
+-- <p style="font-size:28px;font-weight:bold">{{ .Token }}</p>
+-- <p>Si no solicitaste este cambio, ignorá este correo.</p>
+-- Nota: para usar un código OTP en vez de un enlace, la página también debe tener el flujo de ingreso/verificación del código. Esta versión usa el enlace estándar y maneja el token_hash cuando Supabase lo entrega.

@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -76,7 +76,7 @@
 
     button {
       width: 100%;
-      margin-top: 22px;
+      margin-top: 18px;
       padding: 14px;
       border: 0;
       border-radius: 9px;
@@ -87,7 +87,17 @@
       cursor: pointer;
     }
 
-    button:disabled { opacity: .6; cursor: wait; }
+    button.secundario {
+      margin-top: 10px;
+      border: 1px solid var(--borde);
+      background: transparent;
+      color: var(--texto);
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
 
     #mensaje {
       margin-top: 16px;
@@ -135,6 +145,10 @@
       >
 
       <button id="ingresar" type="submit">Ingresar</button>
+      <button id="recuperar" class="secundario" type="button">
+        Olvidé mi contraseña
+      </button>
+
       <p id="mensaje" role="status" aria-live="polite"></p>
     </form>
 
@@ -149,6 +163,9 @@
     (function () {
       const formulario = document.getElementById("formulario");
       const boton = document.getElementById("ingresar");
+      const recuperar = document.getElementById("recuperar");
+      const correoInput = document.getElementById("correo");
+      const contrasena = document.getElementById("contrasena");
       const mensaje = document.getElementById("mensaje");
 
       function informar(texto) {
@@ -164,16 +181,14 @@
         }
 
         boton.disabled = true;
+        recuperar.disabled = true;
         informar("Verificando acceso...");
 
-        const correo = document.getElementById("correo").value.trim();
-        const contrasena = document.getElementById("contrasena").value;
-
         try {
-          const { data, error } = await window.BF_SUPABASE.auth
-            .signInWithPassword({
-              email: correo,
-              password: contrasena
+          const { data, error } =
+            await window.BF_SUPABASE.auth.signInWithPassword({
+              email: correoInput.value.trim(),
+              password: contrasena.value
             });
 
           if (error) {
@@ -199,9 +214,56 @@
           informar("Ocurrió un error de conexión. Intentá nuevamente.");
         } finally {
           boton.disabled = false;
+          recuperar.disabled = false;
+        }
+      });
+
+      recuperar.addEventListener("click", async function () {
+        if (!window.BF_SUPABASE) {
+          informar("No se pudo iniciar la conexión con Supabase.");
+          return;
+        }
+
+        const correo = correoInput.value.trim();
+
+        if (!correo || !correoInput.checkValidity()) {
+          informar("Ingresá tu correo electrónico para recibir el enlace.");
+          correoInput.focus();
+          return;
+        }
+
+        recuperar.disabled = true;
+        boton.disabled = true;
+        informar("Solicitando el correo de recuperación...");
+
+        try {
+          const redirectTo = new URL(
+            "recuperar.html",
+            window.location.href
+          ).href;
+
+          const { error } =
+            await window.BF_SUPABASE.auth.resetPasswordForEmail(correo, {
+              redirectTo: redirectTo
+            });
+
+          if (error) {
+            informar("No se pudo enviar el correo. Revisá la configuración de Supabase.");
+            return;
+          }
+
+          informar(
+            "Si el correo corresponde a una cuenta registrada, recibirás instrucciones para restablecer la contraseña. Revisá también el correo no deseado."
+          );
+        } catch (error) {
+          informar("Ocurrió un error de conexión. Intentá nuevamente.");
+        } finally {
+          recuperar.disabled = false;
+          boton.disabled = false;
         }
       });
     })();
   </script>
 </body>
 </html>
+```

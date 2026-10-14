@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111111">
-  <title>Mascota identificada | by Fraam</title>
+  <meta name="description" content="Perfil de identificación de una mascota by Fraam.">
+  <title>Perfil de mascota | by Fraam</title>
   <style>
     :root {
       color-scheme: dark;
@@ -42,16 +43,17 @@
 
     main {
       width: min(100% - 32px, 520px);
-      margin: 36px auto;
+      margin: 32px auto;
     }
 
     .estado {
-      padding: 12px 15px;
+      padding: 13px;
       border-radius: 10px;
       background: #292929;
       color: var(--secundario);
       font-size: 14px;
       text-align: center;
+      line-height: 1.5;
     }
 
     .estado.perdida {
@@ -70,18 +72,25 @@
     .foto {
       display: grid;
       place-items: center;
-      min-height: 200px;
+      min-height: 190px;
       background: #242424;
       color: var(--secundario);
-      padding: 24px;
-      text-align: center;
+      overflow: hidden;
+    }
+
+    .foto img {
+      display: block;
+      width: 100%;
+      max-height: 360px;
+      object-fit: cover;
     }
 
     .datos { padding: 24px; }
 
     h1 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       font-size: 32px;
+      overflow-wrap: anywhere;
     }
 
     .dato {
@@ -103,7 +112,6 @@
       text-align: center;
       font-size: 15px;
       font-weight: bold;
-      cursor: pointer;
     }
 
     .boton.secundario {
@@ -137,9 +145,11 @@
   </header>
 
   <main>
-    <div id="estado" class="estado">Cargando información...</div>
+    <div id="estado" class="estado" role="status" aria-live="polite">
+      Cargando información de la mascota...
+    </div>
 
-    <section class="tarjeta">
+    <section id="perfil" class="tarjeta" hidden>
       <div id="foto" class="foto">Perfil de mascota</div>
 
       <div class="datos">
@@ -148,43 +158,133 @@
         <div id="raza" class="dato"></div>
         <p id="descripcion" class="dato"></p>
 
-        <a id="llamar" class="boton" hidden>Contactar por teléfono</a>
-        <a id="whatsapp" class="boton" hidden
-           target="_blank" rel="noopener noreferrer">
-          Contactar por WhatsApp
+        <a id="llamar" class="boton" hidden>
+          Contactar por teléfono
         </a>
 
-        <a id="reportar" class="boton secundario" hidden>
-          Informar que encontré esta mascota
+        <a id="whatsapp" class="boton" target="_blank"
+           rel="noopener noreferrer" hidden>
+          Contactar por WhatsApp
         </a>
       </div>
     </section>
 
     <p class="nota">
-      by Fraam Tag Mascotas · Compartimos únicamente información
-      autorizada para ayudar a reunir mascotas con sus familias.
+      La información visible es la que la familia autorizó compartir.
+      Si encontraste esta mascota, contactá a su responsable mediante
+      las opciones disponibles.
     </p>
   </main>
 
-  <footer>BY FRAAM STUDIO</footer>
+  <footer>BY FRAAM STUDIO · TAG MASCOTAS</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase-client.js"></script>
 
   <script>
-    // La conexión con Supabase se agregará en una etapa posterior.
-    // No se muestran datos inventados ni información privada.
+    (async function () {
+      const estado = document.getElementById("estado");
+      const perfil = document.getElementById("perfil");
+      const params = new URLSearchParams(window.location.search);
+      const tag = params.get("id");
 
-    const estado = document.getElementById("estado");
-    const params = new URLSearchParams(window.location.search);
-    const tag = params.get("id");
+      function mostrarError(mensaje) {
+        estado.textContent = mensaje;
+        estado.hidden = false;
+        perfil.hidden = true;
+      }
 
-    if (!tag) {
-      estado.textContent =
-        "No se recibió el código de identificación de la mascota.";
-    } else {
-      estado.textContent =
-        "Código recibido. La conexión segura con la base de datos todavía está pendiente.";
-    }
+      function texto(id, valor) {
+        document.getElementById(id).textContent = valor || "";
+      }
 
-    // Evitamos que se invente un perfil o se muestren datos de otra mascota.
+      function telefonoValido(valor) {
+        return typeof valor === "string" &&
+          /^[0-9+().\s-]{6,30}$/.test(valor);
+      }
+
+      try {
+        if (!tag) {
+          mostrarError("Este enlace no contiene el código de la mascota.");
+          return;
+        }
+
+        if (!window.BF_SUPABASE) {
+          mostrarError("No se pudo iniciar la conexión. Revisá la configuración.");
+          return;
+        }
+
+        const { data, error } = await window.BF_SUPABASE
+          .rpc("get_public_pet", { p_tag_code: tag });
+
+        if (error) {
+          console.error("Error al consultar el perfil:", error);
+          mostrarError("No pudimos consultar el perfil en este momento.");
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          mostrarError("No encontramos una mascota con este código.");
+          return;
+        }
+
+        const mascota = data[0];
+
+        texto("nombre", mascota.name);
+        texto("especie", mascota.species);
+        texto("raza", mascota.breed ? "Raza: " + mascota.breed : "");
+        texto("descripcion", mascota.description);
+
+        if (mascota.photo_url) {
+          try {
+            const url = new URL(mascota.photo_url);
+            if (url.protocol === "https:") {
+              const img = document.createElement("img");
+              img.src = url.href;
+              img.alt = "Foto de " + (mascota.name || "la mascota");
+              img.referrerPolicy = "no-referrer";
+              img.onerror = function () {
+                img.remove();
+                document.getElementById("foto").textContent =
+                  "Foto no disponible";
+              };
+              document.getElementById("foto").replaceChildren(img);
+            }
+          } catch (_) {
+            // Se omite una dirección de foto inválida.
+          }
+        }
+
+        if (mascota.public_contact_phone &&
+            telefonoValido(mascota.public_contact_phone)) {
+          const llamar = document.getElementById("llamar");
+          llamar.href = "tel:" + mascota.public_contact_phone.replace(/[^\d+]/g, "");
+          llamar.hidden = false;
+        }
+
+        if (mascota.public_whatsapp) {
+          const numero = mascota.public_whatsapp.replace(/\D/g, "");
+          if (numero.length >= 8 && numero.length <= 15) {
+            const whatsapp = document.getElementById("whatsapp");
+            whatsapp.href = "https://wa.me/" + numero;
+            whatsapp.hidden = false;
+          }
+        }
+
+        if (mascota.is_missing) {
+          estado.textContent = "¡Esta mascota está reportada como perdida!";
+          estado.classList.add("perdida");
+        } else {
+          estado.textContent = "Perfil de mascota identificada";
+        }
+
+        perfil.hidden = false;
+      } catch (error) {
+        console.error("Error inesperado:", error);
+        mostrarError("Ocurrió un problema al cargar el perfil.");
+      }
+    })();
   </script>
 </body>
 </html>

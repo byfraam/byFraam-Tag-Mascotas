@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111"><meta name="description" content="Identificación inteligente para mascotas by Fraam"><title>by Fraam | Tag Mascotas</title><link rel="stylesheet" href="style.css"></head>
+<body><header class="top"><a class="brand brand-lockup" href="./" aria-label="Inicio"><img id="siteLogo" alt="Logo de la marca" hidden><span id="siteBrandText">by Fraam Mascotas</span></a><span id="siteHeaderLabel">TAG MASCOTAS</span></header>
+<main class="hero wrap"><p class="eyebrow">UN CAMINO DE VUELTA A CASA</p><h1>Su mundo es enorme.<br><span>Que volver a casa sea simple.</span></h1><p class="lead">Identificación para mascotas mediante QR, con un perfil público de contacto y un sistema de avisos para ayudar a reunirlas con su familia.</p><div class="actions"><a class="btn primary" href="acceso/">Acceso administrador</a><a class="btn" href="#como-funciona">Cómo funciona</a></div><section id="como-funciona" class="features"><article><strong>01 · Identificá</strong><p>Registrá a tu mascota y generá su código QR descargable.</p></article><article><strong>02 · Compartí</strong><p>Colocá el QR en su chapita para abrir su perfil desde cualquier teléfono.</p></article><article><strong>03 · Reuní</strong><p>Quien la encuentre puede contactar a su familia o enviar un aviso privado.</p></article></section></main>
+<section id="tagAd" class="tag-ad wrap" hidden aria-label="Publicidad de Tags"><div class="tag-ad-image-wrap" id="tagAdImageWrap" hidden><img id="tagAdImage" alt="Tag QR para mascotas"></div><div class="tag-ad-copy"><p class="eyebrow">IDENTIFICACIÓN INTELIGENTE</p><h2 id="tagAdTitle"></h2><p id="tagAdDescription"></p><p id="tagAdPrice" class="tag-ad-price" hidden></p><a id="tagAdButton" class="btn primary" target="_blank" rel="noopener" hidden>Consultar por WhatsApp</a></div></section>
+<footer><span id="siteFooterText">BY FRAAM STUDIO · TAG MASCOTAS</span></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="js/config.js"></script><script src="js/supabase.js"></script>
+<script>
+(async()=>{
+ const validColor=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:null;
+ const setText=(id,value)=>{const e=document.getElementById(id);if(e&&value)e.textContent=value;};
+ const db=window.BF;if(!db)return;
+ try{
+  const url=db.storage.from('pet-photos').getPublicUrl('site-settings.json').data.publicUrl+'?v='+Date.now();
+  const response=await fetch(url,{cache:'no-store'});if(!response.ok)return;
+  const s=await response.json();const colors=s.colors||{};
+  [['--bg',colors.bg],['--panel',colors.panel],['--text',colors.text],['--muted',colors.muted],['--accent',colors.accent],['--border',colors.border]].forEach(([key,value])=>{const c=validColor(value);if(c)document.documentElement.style.setProperty(key,c);});
+  setText('siteBrandText',s.brandName||'by Fraam Mascotas');setText('siteHeaderLabel',s.brandTagline||'TAG MASCOTAS');setText('siteFooterText',(s.brandName||'BY FRAAM STUDIO')+' · TAG MASCOTAS');
+  const logo=document.getElementById('siteLogo');if(s.logoUrl){logo.src=s.logoUrl;logo.hidden=false;}
+  const ad=s.ad||{};if(!ad.enabled)return;
+  const section=document.getElementById('tagAd');section.hidden=false;setText('tagAdTitle',ad.title||'Identificá a tu mascota con un Tag QR');setText('tagAdDescription',ad.description||'');
+  if(ad.price){setText('tagAdPrice',ad.price);document.getElementById('tagAdPrice').hidden=false;}
+  if(ad.imageUrl){document.getElementById('tagAdImage').src=ad.imageUrl;document.getElementById('tagAdImageWrap').hidden=false;}
+  const phone=String(ad.whatsapp||'').replace(/\D/g,'');if(phone.length>=8&&phone.length<=15){const b=document.getElementById('tagAdButton');b.href='https://wa.me/'+phone+'?text='+encodeURIComponent('Hola, quiero consultar por los Tags QR para mascotas.');b.textContent=ad.buttonText||'Consultar por WhatsApp';b.hidden=false;}
+ }catch(e){console.warn('No se pudo cargar la personalización pública:',e);}
+})();
+</script></body></html>

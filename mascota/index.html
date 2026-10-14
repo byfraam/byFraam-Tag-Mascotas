@@ -166,6 +166,11 @@
            rel="noopener noreferrer" hidden>
           Contactar por WhatsApp
         </a>
+        
+<a id="reportar" class="boton secundario" hidden>
+  Avisar que encontré esta mascota
+</a>
+
       </div>
     </section>
 
@@ -230,6 +235,11 @@
         }
 
         const mascota = data[0];
+
+const botonReportar = document.getElementById("reportar");
+botonReportar.href = "../reportar/index.html?id=" +
+  encodeURIComponent(tag);
+botonReportar.hidden = false;
 
         texto("nombre", mascota.name);
         texto("especie", mascota.species);

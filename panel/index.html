@@ -1,0 +1,554 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <title>Panel | by Fraam Tag Mascotas</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --fondo: #101010;
+      --panel: #1c1c1c;
+      --texto: #f5f5f5;
+      --secundario: #b9b9b9;
+      --borde: #373737;
+      --acento: #d6ff65;
+      --error: #ff9b9b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 20px;
+      border-bottom: 1px solid var(--borde);
+    }
+
+    .marca { font-weight: 800; letter-spacing: 2px; }
+    .marca span { color: var(--acento); }
+
+    main {
+      width: min(100% - 28px, 1000px);
+      margin: 28px auto 50px;
+    }
+
+    h1 { font-size: 28px; }
+    h2 { font-size: 20px; }
+
+    .subtitulo, .ayuda {
+      color: var(--secundario);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      padding: 22px;
+      margin: 20px 0;
+      border: 1px solid var(--borde);
+      border-radius: 15px;
+      background: var(--panel);
+    }
+
+    .rejilla {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .campo { min-width: 0; }
+    .ancho-completo { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      margin: 0 0 7px;
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      background: #111;
+      color: var(--texto);
+      font: inherit;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    .boton {
+      display: inline-block;
+      padding: 12px 16px;
+      border: 1px solid var(--borde);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--texto);
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .principal {
+      background: var(--acento);
+      border-color: var(--acento);
+      color: #111;
+    }
+
+    button:disabled { opacity: .6; cursor: wait; }
+
+    .acciones {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .mensaje {
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .error { color: var(--error); }
+    .ok { color: var(--acento); }
+
+    .lista {
+      display: grid;
+      gap: 12px;
+    }
+
+    .item {
+      padding: 16px;
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .item strong { display: block; margin-bottom: 7px; }
+    .item p { color: var(--secundario); font-size: 13px; line-height: 1.6; }
+    .item a { color: var(--acento); overflow-wrap: anywhere; }
+
+    .etiqueta {
+      display: inline-block;
+      padding: 5px 8px;
+      border: 1px solid var(--borde);
+      border-radius: 6px;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 600px) {
+      .rejilla { grid-template-columns: 1fr; }
+      .ancho-completo { grid-column: auto; }
+      header { align-items: flex-start; }
+      .panel { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="marca">by <span>Fraam</span></div>
+      <div class="subtitulo">Panel de Tag Mascotas</div>
+    </div>
+    <button id="salir" class="boton" hidden>Cerrar sesión</button>
+  </header>
+
+  <main>
+    <section id="cargando" class="panel">
+      Verificando acceso administrativo...
+    </section>
+
+    <section id="contenido" hidden>
+      <h1>Administración</h1>
+      <p class="subtitulo">
+        Gestioná los perfiles y consultá los avisos recibidos.
+      </p>
+
+      <section class="panel">
+        <h2>Registrar mascota</h2>
+        <p class="ayuda">
+          Cargá solamente datos que tengas autorización para almacenar
+          y publicar. El teléfono del responsable no será público
+          salvo que completes el campo de contacto público.
+        </p>
+
+        <form id="form-mascota">
+          <div class="rejilla">
+            <div class="campo">
+              <label for="nombre">Nombre de la mascota *</label>
+              <input id="nombre" maxlength="100" required>
+            </div>
+
+            <div class="campo">
+              <label for="especie">Especie *</label>
+              <select id="especie" required>
+                <option value="Perro">Perro</option>
+                <option value="Gato">Gato</option>
+                <option value="Otra">Otra</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="raza">Raza</label>
+              <input id="raza" maxlength="100">
+            </div>
+
+            <div class="campo">
+              <label for="foto">URL segura de la foto (https)</label>
+              <input id="foto" type="url" maxlength="1000"
+                placeholder="https://...">
+            </div>
+
+            <div class="campo ancho-completo">
+              <label for="descripcion">Descripción pública</label>
+              <textarea id="descripcion" maxlength="1000"
+                placeholder="Características útiles para identificarla"></textarea>
+            </div>
+
+            <div class="campo">
+              <label for="responsable">Nombre del responsable (privado)</label>
+              <input id="responsable" maxlength="100">
+            </div>
+
+            <div class="campo">
+              <label for="telefonoPrivado">Teléfono del responsable (privado)</label>
+              <input id="telefonoPrivado" maxlength="40"
+                autocomplete="off">
+            </div>
+
+            <div class="campo">
+              <label for="telefonoPublico">Teléfono público autorizado</label>
+              <input id="telefonoPublico" maxlength="30"
+                placeholder="Opcional">
+            </div>
+
+            <div class="campo">
+              <label for="whatsappPublico">WhatsApp público autorizado</label>
+              <input id="whatsappPublico" maxlength="30"
+                placeholder="Con código de país, sin + ni espacios">
+            </div>
+          </div>
+
+          <div class="acciones">
+            <button id="guardar" class="boton principal" type="submit">
+              Registrar mascota
+            </button>
+          </div>
+          <p id="mensaje-mascota" class="mensaje" role="status"></p>
+        </form>
+
+        <div id="resultado" class="item" hidden></div>
+      </section>
+
+      <section class="panel">
+        <h2>Mascotas registradas</h2>
+        <div class="acciones">
+          <button id="actualizar-mascotas" class="boton">
+            Actualizar lista
+          </button>
+        </div>
+        <div id="lista-mascotas" class="lista" style="margin-top:16px"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Avisos recibidos</h2>
+        <p class="ayuda">
+          Los avisos son privados y solo deben estar disponibles
+          para la administración autorizada.
+        </p>
+        <div class="acciones">
+          <button id="actualizar-reportes" class="boton">
+            Consultar avisos
+          </button>
+        </div>
+        <div id="lista-reportes" class="lista" style="margin-top:16px"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase-client.js"></script>
+
+  <script>
+    (async function () {
+      "use strict";
+
+      const db = window.BF_SUPABASE;
+      const cargando = document.getElementById("cargando");
+      const contenido = document.getElementById("contenido");
+      const salir = document.getElementById("salir");
+
+      function nodo(tag, texto, clase) {
+        const el = document.createElement(tag);
+        if (texto !== undefined) el.textContent = texto;
+        if (clase) el.className = clase;
+        return el;
+      }
+
+      function mensaje(id, texto, correcto) {
+        const el = document.getElementById(id);
+        el.textContent = texto;
+        el.className = "mensaje " + (correcto ? "ok" : "error");
+      }
+
+      function errorAmigable(error) {
+        console.error(error);
+        return "No se pudo completar la operación. Revisá la conexión y los permisos.";
+      }
+
+      if (!db) {
+        cargando.textContent =
+          "No se pudo iniciar Supabase. Revisá js/config.js y js/supabase-client.js.";
+        return;
+      }
+
+      try {
+        const { data: sesionData, error: sesionError } =
+          await db.auth.getSession();
+
+        if (sesionError || !sesionData.session) {
+          window.location.replace("../acceso/index.html");
+          return;
+        }
+
+        const usuario = sesionData.session.user;
+
+        const { data: admin, error: adminError } = await db
+          .from("admin_users")
+          .select("user_id")
+          .eq("user_id", usuario.id)
+          .maybeSingle();
+
+        if (adminError || !admin) {
+          await db.auth.signOut();
+          window.location.replace("../acceso/index.html");
+          return;
+        }
+
+        cargando.hidden = true;
+        contenido.hidden = false;
+        salir.hidden = false;
+
+        salir.addEventListener("click", async function () {
+          await db.auth.signOut();
+          window.location.replace("../acceso/index.html");
+        });
+
+        document.getElementById("form-mascota")
+          .addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+
+            const boton = document.getElementById("guardar");
+            const resultado = document.getElementById("resultado");
+            resultado.hidden = true;
+            boton.disabled = true;
+
+            const nombre = document.getElementById("nombre").value.trim();
+            const especie = document.getElementById("especie").value;
+            const raza = document.getElementById("raza").value.trim();
+            const foto = document.getElementById("foto").value.trim();
+            const descripcion = document.getElementById("descripcion").value.trim();
+            const responsable = document.getElementById("responsable").value.trim();
+            const telefonoPrivado = document.getElementById("telefonoPrivado").value.trim();
+            const telefonoPublico = document.getElementById("telefonoPublico").value.trim();
+            const whatsappPublico = document.getElementById("whatsappPublico").value.trim();
+
+            if (!nombre) {
+              mensaje("mensaje-mascota", "Ingresá el nombre de la mascota.", false);
+              boton.disabled = false;
+              return;
+            }
+
+            if (foto) {
+              try {
+                if (new URL(foto).protocol !== "https:") throw new Error();
+              } catch (_) {
+                mensaje("mensaje-mascota", "La foto debe tener una URL HTTPS válida.", false);
+                boton.disabled = false;
+                return;
+              }
+            }
+
+            try {
+              const { data, error } = await db
+                .from("pets")
+                .insert({
+                  name: nombre,
+                  species: especie,
+                  breed: raza || null,
+                  photo_url: foto || null,
+                  description: descripcion || null,
+                  owner_name: responsable || null,
+                  owner_phone: telefonoPrivado || null,
+                  public_contact_phone: telefonoPublico || null,
+                  public_whatsapp: whatsappPublico || null
+                })
+                .select("id, tag_code, name")
+                .single();
+
+              if (error) {
+                mensaje("mensaje-mascota", errorAmigable(error), false);
+                return;
+              }
+
+              mensaje("mensaje-mascota", "Mascota registrada correctamente.", true);
+
+              const titulo = nodo("strong", "Registro creado: " + data.name);
+              const codigo = nodo("p", "Código QR: " + data.tag_code);
+              const enlace = nodo("a", "Abrir perfil (cuando esté publicado)");
+              enlace.href = "../mascota/index.html?id=" +
+                encodeURIComponent(data.tag_code);
+              enlace.target = "_blank";
+              enlace.rel = "noopener noreferrer";
+
+              const nota = nodo("p",
+                "El código está generado, pero todavía no se creó la imagen QR.");
+
+              resultado.replaceChildren(titulo, codigo, enlace, nota);
+              resultado.hidden = false;
+
+              document.getElementById("form-mascota").reset();
+              await cargarMascotas();
+            } catch (error) {
+              mensaje("mensaje-mascota", errorAmigable(error), false);
+            } finally {
+              boton.disabled = false;
+            }
+          });
+
+        async function cargarMascotas() {
+          const lista = document.getElementById("lista-mascotas");
+          lista.replaceChildren(nodo("p", "Cargando mascotas...", "subtitulo"));
+
+          const { data, error } = await db
+            .from("pets")
+            .select("id, tag_code, name, species, breed, is_missing, created_at")
+            .order("created_at", { ascending: false })
+            .limit(100);
+
+          if (error) {
+            lista.replaceChildren(nodo("p", errorAmigable(error), "error"));
+            return;
+          }
+
+          if (!data.length) {
+            lista.replaceChildren(nodo("p", "Todavía no hay mascotas registradas.", "subtitulo"));
+            return;
+          }
+
+          lista.replaceChildren();
+
+          data.forEach(function (pet) {
+            const item = nodo("article", undefined, "item");
+            item.appendChild(nodo("span",
+              pet.is_missing ? "REPORTADA COMO PERDIDA" : "REGISTRO ACTIVO",
+              "etiqueta"));
+            item.appendChild(nodo("strong", pet.name));
+            item.appendChild(nodo("p",
+              [pet.species, pet.breed].filter(Boolean).join(" · ")));
+            item.appendChild(nodo("p", "Código: " + pet.tag_code));
+
+            const enlace = nodo("a", "Abrir perfil");
+            enlace.href = "../mascota/index.html?id=" +
+              encodeURIComponent(pet.tag_code);
+            enlace.target = "_blank";
+            enlace.rel = "noopener noreferrer";
+            item.appendChild(enlace);
+
+            const boton = nodo("button",
+              pet.is_missing ? "Marcar como encontrada" : "Marcar como perdida",
+              "boton");
+            boton.type = "button";
+            boton.style.marginTop = "12px";
+
+            boton.addEventListener("click", async function () {
+              boton.disabled = true;
+              const { error: cambioError } = await db
+                .from("pets")
+                .update({ is_missing: !pet.is_missing })
+                .eq("id", pet.id);
+
+              if (cambioError) {
+                alert(errorAmigable(cambioError));
+                boton.disabled = false;
+                return;
+              }
+
+              await cargarMascotas();
+            });
+
+            item.appendChild(boton);
+            lista.appendChild(item);
+          });
+        }
+
+        async function cargarReportes() {
+          const lista = document.getElementById("lista-reportes");
+          lista.replaceChildren(nodo("p", "Consultando avisos...", "subtitulo"));
+
+          const { data, error } = await db
+            .from("found_reports")
+            .select("id, pet_id, finder_name, finder_phone, message, location_text, status, created_at, pets(name)")
+            .order("created_at", { ascending: false })
+            .limit(100);
+
+          if (error) {
+            lista.replaceChildren(nodo("p", errorAmigable(error), "error"));
+            return;
+          }
+
+          if (!data.length) {
+            lista.replaceChildren(nodo("p", "Todavía no se recibieron avisos.", "subtitulo"));
+            return;
+          }
+
+          lista.replaceChildren();
+
+          data.forEach(function (report) {
+            const item = nodo("article", undefined, "item");
+            item.appendChild(nodo("span", report.status.toUpperCase(), "etiqueta"));
+            item.appendChild(nodo("strong",
+              "Mascota: " + (report.pets && report.pets.name || "Sin nombre")));
+            item.appendChild(nodo("p", "Persona: " + (report.finder_name || "No indicado")));
+            item.appendChild(nodo("p", "Teléfono: " + (report.finder_phone || "No indicado")));
+            item.appendChild(nodo("p", "Mensaje: " + (report.message || "Sin mensaje")));
+            item.appendChild(nodo("p", "Ubicación: " + (report.location_text || "No indicada")));
+            item.appendChild(nodo("p",
+              "Recibido: " + new Date(report.created_at).toLocaleString("es-AR")));
+
+            lista.appendChild(item);
+          });
+        }
+
+        document.getElementById("actualizar-mascotas")
+          .addEventListener("click", cargarMascotas);
+        document.getElementById("actualizar-reportes")
+          .addEventListener("click", cargarReportes);
+
+        await cargarMascotas();
+      } catch (error) {
+        console.error(error);
+        cargando.textContent =
+          "No se pudo verificar el acceso. Recargá la página o revisá la configuración.";
+      }
+    })();
+  </script>
+</body>
+</html>

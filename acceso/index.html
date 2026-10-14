@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <title>Acceso administrativo | by Fraam</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --fondo: #101010;
+      --panel: #1c1c1c;
+      --texto: #f5f5f5;
+      --secundario: #b9b9b9;
+      --borde: #373737;
+      --acento: #d6ff65;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      width: min(100%, 420px);
+      padding: 30px;
+      border: 1px solid var(--borde);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .marca {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .marca span { color: var(--acento); }
+
+    h1 {
+      margin: 28px 0 8px;
+      font-size: 25px;
+    }
+
+    .intro {
+      color: var(--secundario);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 13px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--borde);
+      border-radius: 9px;
+      background: #111;
+      color: var(--texto);
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--acento);
+      color: #111;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: .6; cursor: wait; }
+
+    #mensaje {
+      margin-top: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .volver {
+      display: block;
+      margin-top: 24px;
+      text-align: center;
+      color: var(--secundario);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="marca">by <span>Fraam</span></div>
+
+    <h1>Acceso administrativo</h1>
+    <p class="intro">
+      Ingresá con la cuenta autorizada para administrar
+      las mascotas y consultar los avisos recibidos.
+    </p>
+
+    <form id="formulario">
+      <label for="correo">Correo electrónico</label>
+      <input
+        id="correo"
+        name="email"
+        type="email"
+        autocomplete="username"
+        required
+      >
+
+      <label for="contrasena">Contraseña</label>
+      <input
+        id="contrasena"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button id="ingresar" type="submit">Ingresar</button>
+      <p id="mensaje" role="status" aria-live="polite"></p>
+    </form>
+
+    <a class="volver" href="../index.html">Volver al inicio</a>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/supabase-client.js"></script>
+
+  <script>
+    (function () {
+      const formulario = document.getElementById("formulario");
+      const boton = document.getElementById("ingresar");
+      const mensaje = document.getElementById("mensaje");
+
+      function informar(texto) {
+        mensaje.textContent = texto;
+      }
+
+      formulario.addEventListener("submit", async function (evento) {
+        evento.preventDefault();
+
+        if (!window.BF_SUPABASE) {
+          informar("No se pudo iniciar la conexión con Supabase.");
+          return;
+        }
+
+        boton.disabled = true;
+        informar("Verificando acceso...");
+
+        const correo = document.getElementById("correo").value.trim();
+        const contrasena = document.getElementById("contrasena").value;
+
+        try {
+          const { data, error } = await window.BF_SUPABASE.auth
+            .signInWithPassword({
+              email: correo,
+              password: contrasena
+            });
+
+          if (error) {
+            informar("No se pudo iniciar sesión. Revisá los datos ingresados.");
+            return;
+          }
+
+          const { data: admin, error: errorAdmin } =
+            await window.BF_SUPABASE
+              .from("admin_users")
+              .select("user_id")
+              .eq("user_id", data.user.id)
+              .maybeSingle();
+
+          if (errorAdmin || !admin) {
+            await window.BF_SUPABASE.auth.signOut();
+            informar("Esta cuenta no tiene autorización administrativa.");
+            return;
+          }
+
+          window.location.href = "../panel/index.html";
+        } catch (error) {
+          informar("Ocurrió un error de conexión. Intentá nuevamente.");
+        } finally {
+          boton.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -37,6 +37,23 @@
           <div class="field"><label for="colorAccent">Color de botones y destacados</label><input id="colorAccent" type="color" value="#d6ff65"></div>
           <div class="field"><label for="colorBorder">Bordes</label><input id="colorBorder" type="color" value="#363636"></div>
         </div>
+        <h3 style="margin-top:24px">Página principal</h3>
+        <p class="muted">Personalizá el contenido que ve quien visita la página pública principal.</p>
+        <div class="grid">
+          <div class="field"><label for="homeEyebrow">Texto superior pequeño</label><input id="homeEyebrow" maxlength="100" value="UN CAMINO DE VUELTA A CASA"></div>
+          <div class="field"><label for="homeAdminButtonText">Botón de acceso al administrador</label><input id="homeAdminButtonText" maxlength="60" value="Acceso administrador"></div>
+          <div class="field full"><label for="homeTitle">Título principal (primera línea)</label><input id="homeTitle" maxlength="120" value="Su mundo es enorme."></div>
+          <div class="field full"><label for="homeTitleHighlight">Título destacado (segunda línea)</label><input id="homeTitleHighlight" maxlength="120" value="Que volver a casa sea simple."></div>
+          <div class="field full"><label for="homeLead">Descripción principal</label><textarea id="homeLead" maxlength="500">Identificación para mascotas mediante QR, con un perfil público de contacto y un sistema de avisos para ayudar a reunirlas con su familia.</textarea></div>
+          <div class="field"><label for="homeHowButtonText">Botón secundario</label><input id="homeHowButtonText" maxlength="60" value="Cómo funciona"></div>
+          <div class="field"><label for="profileHomeButtonText">Botón en el perfil QR para abrir la página principal</label><input id="profileHomeButtonText" maxlength="70" value="Conocé by Fraam Mascotas"></div>
+          <div class="field"><label for="homeStep1Title">Paso 1 · Título</label><input id="homeStep1Title" maxlength="100" value="01 · Identificá"></div>
+          <div class="field full"><label for="homeStep1Description">Paso 1 · Descripción</label><textarea id="homeStep1Description" maxlength="300">Registrá a tu mascota y generá su código QR descargable.</textarea></div>
+          <div class="field"><label for="homeStep2Title">Paso 2 · Título</label><input id="homeStep2Title" maxlength="100" value="02 · Compartí"></div>
+          <div class="field full"><label for="homeStep2Description">Paso 2 · Descripción</label><textarea id="homeStep2Description" maxlength="300">Colocá el QR en su chapita para abrir su perfil desde cualquier teléfono.</textarea></div>
+          <div class="field"><label for="homeStep3Title">Paso 3 · Título</label><input id="homeStep3Title" maxlength="100" value="03 · Reuní"></div>
+          <div class="field full"><label for="homeStep3Description">Paso 3 · Descripción</label><textarea id="homeStep3Description" maxlength="300">Quien la encuentre puede contactar a su familia o enviar un aviso privado.</textarea></div>
+        </div>
         <h3 style="margin-top:24px">Publicidad para vender Tags</h3>
         <div class="field"><label><input id="adEnabled" type="checkbox" style="width:auto;margin-right:8px">Mostrar publicidad en la página principal y las fichas públicas</label></div>
         <div class="grid">
@@ -137,13 +154,15 @@
   const defaultSiteSettings={
     brandName:'by Fraam Mascotas', brandTagline:'TAG MASCOTAS', logoUrl:'',
     colors:{bg:'#101010',panel:'#1b1b1b',text:'#f5f5f5',muted:'#aaaaaa',accent:'#d6ff65',border:'#363636'},
+    home:{eyebrow:'UN CAMINO DE VUELTA A CASA',title:'Su mundo es enorme.',titleHighlight:'Que volver a casa sea simple.',lead:'Identificación para mascotas mediante QR, con un perfil público de contacto y un sistema de avisos para ayudar a reunirlas con su familia.',adminButtonText:'Acceso administrador',howButtonText:'Cómo funciona',step1Title:'01 · Identificá',step1Description:'Registrá a tu mascota y generá su código QR descargable.',step2Title:'02 · Compartí',step2Description:'Colocá el QR en su chapita para abrir su perfil desde cualquier teléfono.',step3Title:'03 · Reuní',step3Description:'Quien la encuentre puede contactar a su familia o enviar un aviso privado.'},
+    profileHomeButtonText:'Conocé by Fraam Mascotas',
     ad:{enabled:false,title:'Identificá a tu mascota con un Tag QR',description:'Una identificación práctica para que quien la encuentre pueda acceder a su perfil y ayudarla a volver a casa.',price:'',whatsapp:'',buttonText:'Consultar por WhatsApp',imageUrl:''}
   };
   let siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));
   const settingsEl=id=>document.getElementById(id);
   function mergeSettings(raw){
     const v=raw&&typeof raw==='object'?raw:{};
-    return {...defaultSiteSettings,...v,colors:{...defaultSiteSettings.colors,...(v.colors||{})},ad:{...defaultSiteSettings.ad,...(v.ad||{})}};
+    return {...defaultSiteSettings,...v,colors:{...defaultSiteSettings.colors,...(v.colors||{})},home:{...defaultSiteSettings.home,...(v.home||{})},ad:{...defaultSiteSettings.ad,...(v.ad||{})}};
   }
   function setPreview(wrapId,imgId,url){
     const wrap=settingsEl(wrapId),img=settingsEl(imgId);
@@ -158,6 +177,20 @@
     settingsEl('colorMuted').value=siteSettings.colors.muted;
     settingsEl('colorAccent').value=siteSettings.colors.accent;
     settingsEl('colorBorder').value=siteSettings.colors.border;
+    const h=siteSettings.home||defaultSiteSettings.home;
+    settingsEl('homeEyebrow').value=h.eyebrow||'';
+    settingsEl('homeTitle').value=h.title||'';
+    settingsEl('homeTitleHighlight').value=h.titleHighlight||'';
+    settingsEl('homeLead').value=h.lead||'';
+    settingsEl('homeAdminButtonText').value=h.adminButtonText||'Acceso administrador';
+    settingsEl('homeHowButtonText').value=h.howButtonText||'Cómo funciona';
+    settingsEl('homeStep1Title').value=h.step1Title||'';
+    settingsEl('homeStep1Description').value=h.step1Description||'';
+    settingsEl('homeStep2Title').value=h.step2Title||'';
+    settingsEl('homeStep2Description').value=h.step2Description||'';
+    settingsEl('homeStep3Title').value=h.step3Title||'';
+    settingsEl('homeStep3Description').value=h.step3Description||'';
+    settingsEl('profileHomeButtonText').value=siteSettings.profileHomeButtonText||'Conocé by Fraam Mascotas';
     settingsEl('adEnabled').checked=!!siteSettings.ad.enabled;
     settingsEl('adTitle').value=siteSettings.ad.title||'';
     settingsEl('adDescription').value=siteSettings.ad.description||'';
@@ -190,7 +223,7 @@
   settingsEl('removeLogo').onclick=()=>{siteSettings.logoUrl='';settingsEl('logoFile').value='';setPreview('logoPreviewWrap','logoPreview','');};
   settingsEl('removeAdImage').onclick=()=>{siteSettings.ad.imageUrl='';settingsEl('adImageFile').value='';setPreview('adPreviewWrap','adPreview','');};
   settingsEl('resetSiteSettings').onclick=()=>{
-    if(!confirm('¿Restablecer logo, colores y publicidad a los valores predeterminados? Guardá los cambios para publicarlos.'))return;
+    if(!confirm('¿Restablecer logo, colores, página principal, botones y publicidad a los valores predeterminados? Guardá los cambios para publicarlos.'))return;
     siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));fillSettingsForm();
     settingsEl('logoFile').value='';settingsEl('adImageFile').value='';
     C.msg('settingsMsg','Valores predeterminados cargados. Presioná Guardar personalización para aplicarlos.','');
@@ -206,6 +239,8 @@
         brandTagline:settingsEl('brandTaglineInput').value.trim()||'TAG MASCOTAS',
         logoUrl:siteSettings.logoUrl||'',
         colors:{bg:settingsEl('colorBg').value,panel:settingsEl('colorPanel').value,text:settingsEl('colorText').value,muted:settingsEl('colorMuted').value,accent:settingsEl('colorAccent').value,border:settingsEl('colorBorder').value},
+        home:{eyebrow:settingsEl('homeEyebrow').value.trim(),title:settingsEl('homeTitle').value.trim(),titleHighlight:settingsEl('homeTitleHighlight').value.trim(),lead:settingsEl('homeLead').value.trim(),adminButtonText:settingsEl('homeAdminButtonText').value.trim()||'Acceso administrador',howButtonText:settingsEl('homeHowButtonText').value.trim()||'Cómo funciona',step1Title:settingsEl('homeStep1Title').value.trim(),step1Description:settingsEl('homeStep1Description').value.trim(),step2Title:settingsEl('homeStep2Title').value.trim(),step2Description:settingsEl('homeStep2Description').value.trim(),step3Title:settingsEl('homeStep3Title').value.trim(),step3Description:settingsEl('homeStep3Description').value.trim()},
+        profileHomeButtonText:settingsEl('profileHomeButtonText').value.trim()||'Conocé by Fraam Mascotas',
         ad:{enabled:settingsEl('adEnabled').checked,title:settingsEl('adTitle').value.trim(),description:settingsEl('adDescription').value.trim(),price:settingsEl('adPrice').value.trim(),whatsapp:settingsEl('adWhatsApp').value.replace(/\D/g,''),buttonText:settingsEl('adButtonText').value.trim()||'Consultar por WhatsApp',imageUrl:siteSettings.ad.imageUrl||''}
       };
       // Guardamos el JSON con MIME image/png para compatibilidad con buckets que solo permiten imágenes. El contenido sigue siendo JSON y las páginas públicas lo leen con response.json().

@@ -21,6 +21,14 @@
 #pointSalesList article .sales-card-label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--accent);}
 #pointSalesList article .btn{margin-top:auto;}
 #pointSalesList article .btn.primary{width:100%;justify-content:center;text-align:center;}
+#pulsoRetailCta{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:22px;margin:0 auto 38px;padding:clamp(24px,4vw,38px);border:1px solid var(--border);border-radius:22px;background:var(--panel);box-sizing:border-box;}
+#pulsoRetailCta .retail-copy{max-width:650px;}
+#pulsoRetailCta .retail-kicker{margin:0 0 9px;color:var(--accent);font-size:.76rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;}
+#pulsoRetailCta h2{margin:0 0 10px;font-size:clamp(1.6rem,3.5vw,2.35rem);line-height:1.12;letter-spacing:-.035em;}
+#pulsoRetailCta .retail-description{margin:0;color:var(--muted);line-height:1.65;max-width:620px;}
+#pulsoRetailCta .retail-action{flex-shrink:0;}
+#pulsoRetailCta .retail-action .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:12px 18px;text-align:center;}
+@media(max-width:600px){#pulsoRetailCta{border-radius:18px;margin-bottom:24px;padding:22px 16px}#pulsoRetailCta .retail-action{width:100%}#pulsoRetailCta .retail-action .btn{width:100%;box-sizing:border-box}}
 @media(max-width:600px){#pointSalesSection{border-radius:18px;margin-top:20px;padding:22px 16px!important}#pointSalesSection h2{font-size:2.15rem}#pointSalesMap{margin-bottom:18px!important}#pointSalesList article{min-height:0}}
 @media(prefers-reduced-motion:reduce){#pointSalesList article{transition:none}#pointSalesList article:hover{transform:none}}
 </style></head>
@@ -35,6 +43,14 @@
   <div id="pointSalesMap" aria-label="Mapa interactivo de puntos de venta"></div>
   <p class="sales-map-label">Encontrá tu comercio</p>
   <div id="pointSalesList" class="features" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))"></div>
+</section>
+<section id="pulsoRetailCta" class="wrap" aria-labelledby="pulsoRetailTitle">
+  <div class="retail-copy">
+    <p class="retail-kicker">Sumate a la red PULSOtag</p>
+    <h2 id="pulsoRetailTitle">¿Tenés un comercio y querés vender PULSOtag?</h2>
+    <p class="retail-description">Estamos sumando puntos de venta. Escribinos para contarnos sobre tu comercio y conocer cómo formar parte de la red.</p>
+  </div>
+  <div class="retail-action"><a id="pulsoRetailWhatsApp" class="btn primary" href="https://wa.me/5493858439205?text=Hola%2C%20quiero%20consultar%20para%20ser%20punto%20de%20venta%20de%20PULSOtag.%20Mi%20comercio%20se%20llama%3A%20" target="_blank" rel="noopener noreferrer">Quiero ser punto de venta <span aria-hidden="true">↗</span></a></div>
 </section>
 <section id="tagAd" class="tag-ad wrap" hidden aria-label="Publicidad de Tags"><div class="tag-ad-image-wrap" id="tagAdImageWrap" hidden><img id="tagAdImage" alt="Tag QR para mascotas"></div><div class="tag-ad-copy"><p class="eyebrow">IDENTIFICACIÓN INTELIGENTE</p><h2 id="tagAdTitle"></h2><p id="tagAdDescription"></p><p id="tagAdPrice" class="tag-ad-price" hidden></p><a id="tagAdButton" class="btn primary" target="_blank" rel="noopener" hidden>Consultar por WhatsApp</a></div></section>
 <footer><span id="siteFooterText">BY FRAAM STUDIO · TAG MASCOTAS</span></footer>

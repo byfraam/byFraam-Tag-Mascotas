@@ -1,10 +1,15 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111"><meta name="description" content="Identificación inteligente para mascotas by Fraam"><title>by Fraam | Tag Mascotas</title><link rel="stylesheet" href="style.css"></head>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111"><meta name="description" content="Identificación inteligente para mascotas by Fraam"><title>by Fraam | Tag Mascotas</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""></head>
 <body><header class="top"><a class="brand brand-lockup" href="./" aria-label="Inicio"><img id="siteLogo" alt="Logo de la marca" hidden><span id="siteBrandText">by Fraam Mascotas</span></a><span id="siteHeaderLabel">TAG MASCOTAS</span></header>
 <main class="hero wrap"><p class="eyebrow" id="homeEyebrow">UN CAMINO DE VUELTA A CASA</p><h1><span id="homeTitle">Su mundo es enorme.</span><br><span id="homeTitleHighlight">Que volver a casa sea simple.</span></h1><p class="lead" id="homeLead">Identificación para mascotas mediante QR, con un perfil público de contacto y un sistema de avisos para ayudar a reunirlas con su familia.</p><div class="actions"><a id="homeAdminButton" class="btn primary" href="acceso/">Acceso administrador</a><a id="homeHowButton" class="btn" href="#como-funciona">Cómo funciona</a></div><section id="como-funciona" class="features"><article><strong id="homeStep1Title">01 · Identificá</strong><p id="homeStep1Description">Registrá a tu mascota y generá su código QR descargable.</p></article><article><strong id="homeStep2Title">02 · Compartí</strong><p id="homeStep2Description">Colocá el QR en su chapita para abrir su perfil desde cualquier teléfono.</p></article><article><strong id="homeStep3Title">03 · Reuní</strong><p id="homeStep3Description">Quien la encuentre puede contactar a su familia o enviar un aviso privado.</p></article></section></main>
+<section id="pointSalesSection" class="wrap" hidden style="padding:24px 0 48px" aria-labelledby="pointSalesTitle">
+  <p class="eyebrow">RED DE COMERCIOS</p><h2 id="pointSalesTitle">Dónde conseguir PULSOtag</h2><p class="lead" style="max-width:760px">Encontrá tu punto de venta más cercano y consultá cómo llegar.</p>
+  <div id="pointSalesMap" style="width:100%;height:360px;min-height:280px;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:18px 0 24px" aria-label="Mapa interactivo de puntos de venta"></div>
+  <div id="pointSalesList" class="features" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))"></div>
+</section>
 <section id="tagAd" class="tag-ad wrap" hidden aria-label="Publicidad de Tags"><div class="tag-ad-image-wrap" id="tagAdImageWrap" hidden><img id="tagAdImage" alt="Tag QR para mascotas"></div><div class="tag-ad-copy"><p class="eyebrow">IDENTIFICACIÓN INTELIGENTE</p><h2 id="tagAdTitle"></h2><p id="tagAdDescription"></p><p id="tagAdPrice" class="tag-ad-price" hidden></p><a id="tagAdButton" class="btn primary" target="_blank" rel="noopener" hidden>Consultar por WhatsApp</a></div></section>
 <footer><span id="siteFooterText">BY FRAAM STUDIO · TAG MASCOTAS</span></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="js/config.js"></script><script src="js/supabase.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="js/config.js"></script><script src="js/supabase.js"></script>
 <script>
 (async()=>{
  const validColor=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:null;
@@ -19,6 +24,30 @@
   const logo=document.getElementById('siteLogo');if(s.logoUrl){logo.src=s.logoUrl;logo.hidden=false;}
   const home=s.home||{};
   ['eyebrow','title','titleHighlight','lead','adminButtonText','howButtonText','step1Title','step1Description','step2Title','step2Description','step3Title','step3Description'].forEach(k=>{const ids={eyebrow:'homeEyebrow',title:'homeTitle',titleHighlight:'homeTitleHighlight',lead:'homeLead',adminButtonText:'homeAdminButton',howButtonText:'homeHowButton',step1Title:'homeStep1Title',step1Description:'homeStep1Description',step2Title:'homeStep2Title',step2Description:'homeStep2Description',step3Title:'homeStep3Title',step3Description:'homeStep3Description'};if(home[k])setText(ids[k],home[k]);});
+  const points=Array.isArray(s.pointSales)?s.pointSales:[];
+  if(points.length){
+    const section=document.getElementById('pointSalesSection'),list=document.getElementById('pointSalesList');section.hidden=false;list.replaceChildren();
+    const markerPoints=[];
+    points.forEach(p=>{
+      const card=document.createElement('article');
+      const title=document.createElement('strong');title.textContent=p.name||'Punto de venta';card.append(title);
+      const address=document.createElement('p');address.textContent=[p.address,p.city,p.province].filter(Boolean).join(', ');card.append(address);
+      if(p.whatsapp){const phone=String(p.whatsapp).replace(/\D/g,'');const contact=document.createElement('p');contact.textContent='Contacto: '+p.whatsapp;card.append(contact);if(phone.length>=8&&phone.length<=15){const wa=document.createElement('a');wa.className='btn';wa.href='https://wa.me/'+phone;wa.target='_blank';wa.rel='noopener';wa.textContent='Consultar por WhatsApp';card.append(wa);}}
+      let mapUrl=p.mapsUrl||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent([p.address,p.city,p.province].filter(Boolean).join(', ')));
+      const directions=document.createElement('a');directions.className='btn primary';directions.href=mapUrl;directions.target='_blank';directions.rel='noopener';directions.textContent='Cómo llegar';card.append(directions);
+      card.style.cssText='padding:20px;border:1px solid var(--border);border-radius:14px;background:var(--panel);display:flex;flex-direction:column;align-items:flex-start;gap:10px';list.append(card);
+      const lat=Number(p.lat),lng=Number(p.lng);if(p.lat!==''&&p.lng!==''&&Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180)markerPoints.push({p,lat,lng});
+    });
+    const mapEl=document.getElementById('pointSalesMap');
+    if(window.L&&markerPoints.length){
+      const map=L.map(mapEl,{scrollWheelZoom:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+      const bounds=[];markerPoints.forEach(({p,lat,lng})=>{const marker=L.marker([lat,lng]).addTo(map);marker.bindPopup('<strong>'+String(p.name||'Punto de venta').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</strong><br>'+String([p.address,p.city,p.province].filter(Boolean).join(', ')).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));bounds.push([lat,lng]);});
+      if(bounds.length===1)map.setView(bounds[0],14);else map.fitBounds(bounds,{padding:[28,28]});
+    }else{
+      mapEl.style.display='none';
+      const note=document.createElement('p');note.className='muted';note.textContent='El mapa mostrará los marcadores cuando los puntos de venta tengan cargadas sus coordenadas de latitud y longitud.';section.insertBefore(note,mapEl);
+    }
+  }
   const ad=s.ad||{};if(!ad.enabled)return;
   const section=document.getElementById('tagAd');section.hidden=false;setText('tagAdTitle',ad.title||'Identificá a tu mascota con un Tag QR');setText('tagAdDescription',ad.description||'');
   if(ad.price){setText('tagAdPrice',ad.price);document.getElementById('tagAdPrice').hidden=false;}

@@ -61,6 +61,7 @@
     points.forEach(p=>{
       const card=document.createElement('article');
       const label=document.createElement('span');label.className='sales-card-label';label.textContent='Punto de venta PULSOtag';card.append(label);
+      if(p.logoUrl){const logoWrap=document.createElement('div');logoWrap.style.cssText='width:100%;height:112px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px;box-sizing:border-box';const logo=document.createElement('img');logo.src=p.logoUrl;logo.alt='Logo de '+(p.name||'comercio');logo.loading='lazy';logo.style.cssText='display:block;max-width:100%;max-height:100%;object-fit:contain';logoWrap.append(logo);card.append(logoWrap);}
       const title=document.createElement('strong');title.textContent=p.name||'Punto de venta';card.append(title);
       const address=document.createElement('p');address.textContent=[p.address,p.city,p.province].filter(Boolean).join(', ');card.append(address);
       if(p.whatsapp){const phone=String(p.whatsapp).replace(/\D/g,'');const contact=document.createElement('p');contact.textContent='Contacto: '+p.whatsapp;card.append(contact);if(phone.length>=8&&phone.length<=15){const wa=document.createElement('a');wa.className='btn';wa.href='https://wa.me/'+phone;wa.target='_blank';wa.rel='noopener';wa.textContent='Consultar por WhatsApp';card.append(wa);}}

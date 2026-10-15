@@ -1,5 +1,22 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111"><meta name="description" content="Identificación inteligente para mascotas by Fraam"><title>by Fraam | Tag Mascotas</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""><style>
+
+/* Carrusel de portada administrable: admite imágenes estáticas y animadas */
+#homeCarousel{position:relative;margin:18px auto 28px;overflow:hidden;border:1px solid var(--border);border-radius:22px;background:var(--panel);box-shadow:0 14px 38px rgba(0,0,0,.14);}
+#homeCarousel[hidden]{display:none!important}
+#homeCarousel .home-carousel-viewport{position:relative;overflow:hidden;aspect-ratio:16/6;min-height:190px;max-height:460px;}
+#homeCarousel .home-carousel-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.22,.61,.36,1);will-change:transform;}
+#homeCarousel .home-carousel-slide{position:relative;flex:0 0 100%;min-width:0;height:100%;margin:0;}
+#homeCarousel .home-carousel-slide img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
+#homeCarousel .home-carousel-arrow{position:absolute;z-index:2;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(0,0,0,.58);color:#fff;font-size:26px;line-height:1;cursor:pointer;backdrop-filter:blur(6px);}
+#homeCarousel .home-carousel-arrow:hover{background:var(--accent);color:#111;}
+#homeCarousel .home-carousel-prev{left:14px}#homeCarousel .home-carousel-next{right:14px}
+#homeCarousel .home-carousel-dots{position:absolute;z-index:2;left:0;right:0;bottom:14px;display:flex;justify-content:center;align-items:center;gap:8px;padding:0 12px;}
+#homeCarousel .home-carousel-dot{width:9px;height:9px;padding:0;border:1px solid #fff;border-radius:999px;background:rgba(0,0,0,.35);cursor:pointer;transition:width .2s ease,background .2s ease;}
+#homeCarousel .home-carousel-dot[aria-current="true"]{width:25px;background:var(--accent);border-color:var(--accent)}
+@media(max-width:700px){#homeCarousel{margin:12px auto 22px;border-radius:16px}#homeCarousel .home-carousel-viewport{aspect-ratio:4/3;min-height:180px;max-height:340px}#homeCarousel .home-carousel-arrow{width:36px;height:36px;font-size:23px}#homeCarousel .home-carousel-prev{left:9px}#homeCarousel .home-carousel-next{right:9px}#homeCarousel .home-carousel-dots{bottom:10px}}
+@media(prefers-reduced-motion:reduce){#homeCarousel .home-carousel-track,#homeCarousel .home-carousel-dot{transition:none}}
+
 /* PULSOtag: presentación destacada de puntos de venta */
 #pointSalesSection{position:relative;margin-top:34px;margin-bottom:36px;padding:clamp(24px,4vw,42px)!important;border:1px solid var(--border);border-radius:24px;background:linear-gradient(145deg,var(--panel),var(--bg));overflow:hidden;}
 #pointSalesSection:before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:var(--accent);}
@@ -33,6 +50,14 @@
 @media(prefers-reduced-motion:reduce){#pointSalesList article{transition:none}#pointSalesList article:hover{transform:none}}
 </style></head>
 <body><header class="top"><a class="brand brand-lockup" href="./" aria-label="Inicio"><img id="siteLogo" alt="Logo de la marca" hidden><span id="siteBrandText">by Fraam Mascotas</span></a><span id="siteHeaderLabel">TAG MASCOTAS</span></header>
+<section id="homeCarousel" class="wrap" hidden aria-label="Galería destacada">
+  <div class="home-carousel-viewport" id="homeCarouselViewport">
+    <div class="home-carousel-track" id="homeCarouselTrack"></div>
+    <button type="button" id="homeCarouselPrev" class="home-carousel-arrow home-carousel-prev" aria-label="Imagen anterior" hidden>‹</button>
+    <button type="button" id="homeCarouselNext" class="home-carousel-arrow home-carousel-next" aria-label="Imagen siguiente" hidden>›</button>
+    <div id="homeCarouselDots" class="home-carousel-dots" aria-label="Elegir imagen"></div>
+  </div>
+</section>
 <main class="hero wrap"><p class="eyebrow" id="homeEyebrow">UN CAMINO DE VUELTA A CASA</p><h1><span id="homeTitle">Su mundo es enorme.</span><br><span id="homeTitleHighlight">Que volver a casa sea simple.</span></h1><p class="lead" id="homeLead">Identificación para mascotas mediante QR, con un perfil público de contacto y un sistema de avisos para ayudar a reunirlas con su familia.</p><div class="actions"><a id="homeAdminButton" class="btn primary" href="acceso/">Acceso administrador</a><a id="homeHowButton" class="btn" href="#como-funciona">Cómo funciona</a></div><section id="como-funciona" class="features"><article><strong id="homeStep1Title">01 · Identificá</strong><p id="homeStep1Description">Registrá a tu mascota y generá su código QR descargable.</p></article><article><strong id="homeStep2Title">02 · Compartí</strong><p id="homeStep2Description">Colocá el QR en su chapita para abrir su perfil desde cualquier teléfono.</p></article><article><strong id="homeStep3Title">03 · Reuní</strong><p id="homeStep3Description">Quien la encuentre puede contactar a su familia o enviar un aviso privado.</p></article></section></main>
 <section id="pointSalesSection" class="wrap" hidden aria-labelledby="pointSalesTitle">
   <p class="sales-kicker">Red oficial de comercios</p>
@@ -59,6 +84,35 @@
 (async()=>{
  const validColor=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:null;
  const setText=(id,value)=>{const e=document.getElementById(id);if(e&&value)e.textContent=value;};
+ function renderHomeCarousel(rawSlides){
+  const section=document.getElementById('homeCarousel'),track=document.getElementById('homeCarouselTrack'),dots=document.getElementById('homeCarouselDots');
+  const prev=document.getElementById('homeCarouselPrev'),next=document.getElementById('homeCarouselNext');
+  const slides=Array.isArray(rawSlides)?rawSlides.filter(s=>s&&typeof s.url==='string'&&s.url.trim()):[];
+  if(!slides.length){section.hidden=true;return;}
+  section.hidden=false;track.replaceChildren();dots.replaceChildren();
+  let current=0,timer=null;
+  slides.forEach((s,i)=>{
+   const frame=document.createElement('figure');frame.className='home-carousel-slide';
+   const img=document.createElement('img');img.src=s.url;img.alt=s.alt||('Imagen destacada '+(i+1));img.loading=i===0?'eager':'lazy';img.decoding='async';img.draggable=false;
+   frame.append(img);track.append(frame);
+   const dot=document.createElement('button');dot.type='button';dot.className='home-carousel-dot';dot.setAttribute('aria-label','Mostrar imagen '+(i+1));dot.setAttribute('aria-current',i===0?'true':'false');dot.onclick=()=>show(i,true);dots.append(dot);
+  });
+  const dotButtons=Array.from(dots.children);
+  const canMove=slides.length>1;prev.hidden=!canMove;next.hidden=!canMove;dots.hidden=!canMove;
+  function show(n,resetTimer=false){
+   current=(n+slides.length)%slides.length;track.style.transform='translateX(-'+(current*100)+'%)';
+   dotButtons.forEach((d,i)=>d.setAttribute('aria-current',i===current?'true':'false'));
+   if(resetTimer)restart();
+  }
+  function restart(){if(timer)clearInterval(timer);timer=null;if(canMove&&!document.hidden)timer=setInterval(()=>show(current+1),5500);}
+  prev.onclick=()=>show(current-1,true);next.onclick=()=>show(current+1,true);
+  section.onmouseenter=()=>{if(timer){clearInterval(timer);timer=null;}};
+  section.onmouseleave=restart;
+  section.onfocusin=()=>{if(timer){clearInterval(timer);timer=null;}};
+  section.onfocusout=restart;
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(timer)clearInterval(timer);timer=null;}else restart();});
+  show(0);restart();
+ }
  const db=window.BF;if(!db)return;
  try{
   const url=db.storage.from('pet-photos').getPublicUrl('site-settings.json').data.publicUrl+'?v='+Date.now();
@@ -69,6 +123,7 @@
   const logo=document.getElementById('siteLogo');if(s.logoUrl){logo.src=s.logoUrl;logo.hidden=false;}
   const home=s.home||{};
   ['eyebrow','title','titleHighlight','lead','adminButtonText','howButtonText','step1Title','step1Description','step2Title','step2Description','step3Title','step3Description'].forEach(k=>{const ids={eyebrow:'homeEyebrow',title:'homeTitle',titleHighlight:'homeTitleHighlight',lead:'homeLead',adminButtonText:'homeAdminButton',howButtonText:'homeHowButton',step1Title:'homeStep1Title',step1Description:'homeStep1Description',step2Title:'homeStep2Title',step2Description:'homeStep2Description',step3Title:'homeStep3Title',step3Description:'homeStep3Description'};if(home[k])setText(ids[k],home[k]);});
+  renderHomeCarousel(s.carousel);
   const points=Array.isArray(s.pointSales)?s.pointSales:[];
   if(points.length){
     const countEl=document.getElementById('pointSalesCount');if(countEl)countEl.textContent=points.length+' '+(points.length===1?'comercio disponible':'comercios disponibles');

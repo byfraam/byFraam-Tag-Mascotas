@@ -65,6 +65,7 @@
           <div class="field"><label for="pointSaleLat">Latitud (para ubicar en el mapa)</label><input id="pointSaleLat" type="number" step="any" min="-90" max="90" placeholder="-27.494"></div>
           <div class="field"><label for="pointSaleLng">Longitud (para ubicar en el mapa)</label><input id="pointSaleLng" type="number" step="any" min="-180" max="180" placeholder="-64.859"></div>
           <div class="field full"><label for="pointSaleMapsUrl">Enlace de Google Maps (opcional)</label><input id="pointSaleMapsUrl" type="url" maxlength="500" placeholder="https://maps.google.com/..."></div>
+          <div class="field full"><label for="pointSaleLogoFile">Logo del comercio (solo PNG, máximo 5 MB)</label><input id="pointSaleLogoFile" type="file" accept="image/png"><p class="muted" style="margin:6px 0 0">El logo se mostrará en la tarjeta pública del comercio.</p><div id="pointSaleLogoPreviewWrap" class="muted" style="margin-top:10px" hidden><img id="pointSaleLogoPreview" alt="Vista previa del logo del comercio" style="max-width:220px;max-height:120px;object-fit:contain;background:#fff;border-radius:10px;padding:8px"><div class="row" style="margin-top:8px"><button id="removePointSaleLogo" type="button">Quitar logo</button></div></div></div>
         </div>
         <div class="row" style="margin-top:12px;flex-wrap:wrap"><button id="addPointSale" type="button" class="primary">Agregar punto de venta</button><button id="cancelPointSaleEdit" type="button" hidden>Cancelar edición</button></div>
         <p id="pointSalesMsg" class="msg" role="status"></p>
@@ -216,30 +217,39 @@
     setPreview('adPreviewWrap','adPreview',siteSettings.ad.imageUrl);
     pointSalesDraft=(siteSettings.pointSales||[]).map(p=>({...p}));renderPointSalesAdmin();
   }
-  let pointSalesDraft=[];let editingPointSaleId=null;
+  let pointSalesDraft=[];let editingPointSaleId=null;let pointSaleExistingLogoUrl='';let pointSalePendingLogoFile=null;
   const pointSaleInputIds=['pointSaleName','pointSaleWhatsapp','pointSaleAddress','pointSaleCity','pointSaleProvince','pointSaleLat','pointSaleLng','pointSaleMapsUrl'];
-  function clearPointSaleInputs(){pointSaleInputIds.forEach(id=>settingsEl(id).value='');editingPointSaleId=null;settingsEl('addPointSale').textContent='Agregar punto de venta';settingsEl('cancelPointSaleEdit').hidden=true;}
+  function previewPointSaleLogo(url){setPreview('pointSaleLogoPreviewWrap','pointSaleLogoPreview',url);}
+  function clearPointSaleInputs(){pointSaleInputIds.forEach(id=>settingsEl(id).value='');settingsEl('pointSaleLogoFile').value='';pointSaleExistingLogoUrl='';pointSalePendingLogoFile=null;previewPointSaleLogo('');editingPointSaleId=null;settingsEl('addPointSale').textContent='Agregar punto de venta';settingsEl('cancelPointSaleEdit').hidden=true;}
   function renderPointSalesAdmin(){
     const box=settingsEl('pointSalesAdminList');box.replaceChildren();
     if(!pointSalesDraft.length){box.append(node('p','Todavía no hay puntos de venta cargados.','muted'));return;}
-    pointSalesDraft.forEach((p,i)=>{
+    pointSalesDraft.forEach(p=>{
       const card=node('div',undefined,'item');
+      if(p.logoUrl||p.logoFile){const img=document.createElement('img');img.src=p.logoFile?URL.createObjectURL(p.logoFile):p.logoUrl;img.alt='Logo de '+(p.name||'comercio');img.style.cssText='display:block;max-width:160px;max-height:80px;object-fit:contain;background:#fff;border-radius:8px;padding:6px;margin-bottom:10px';card.append(img);}
       const title=node('strong',p.name||'Comercio');card.append(title);
       card.append(node('p',[p.address,p.city,p.province].filter(Boolean).join(', '),'muted'));
       if(p.whatsapp)card.append(node('p','Contacto: '+p.whatsapp,'muted'));
       card.append(node('p',Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&p.lat!==''&&p.lng!==''?'Ubicado en el mapa':'Sin coordenadas: aparecerá en el listado, pero no como marcador.','muted'));
       const actions=node('div',undefined,'row');actions.style.flexWrap='wrap';
-      const edit=node('button','Editar');edit.type='button';edit.onclick=()=>{editingPointSaleId=p.id;settingsEl('pointSaleName').value=p.name||'';settingsEl('pointSaleWhatsapp').value=p.whatsapp||'';settingsEl('pointSaleAddress').value=p.address||'';settingsEl('pointSaleCity').value=p.city||'';settingsEl('pointSaleProvince').value=p.province||'';settingsEl('pointSaleLat').value=p.lat??'';settingsEl('pointSaleLng').value=p.lng??'';settingsEl('pointSaleMapsUrl').value=p.mapsUrl||'';settingsEl('addPointSale').textContent='Guardar cambios del punto';settingsEl('cancelPointSaleEdit').hidden=false;};
-      const del=node('button','Eliminar');del.type='button';del.onclick=()=>{if(!confirm('¿Eliminar el punto de venta “'+p.name+'”?'))return;pointSalesDraft=pointSalesDraft.filter(x=>x.id!==p.id);renderPointSalesAdmin();};
+      const edit=node('button','Editar');edit.type='button';edit.onclick=()=>{editingPointSaleId=p.id;settingsEl('pointSaleName').value=p.name||'';settingsEl('pointSaleWhatsapp').value=p.whatsapp||'';settingsEl('pointSaleAddress').value=p.address||'';settingsEl('pointSaleCity').value=p.city||'';settingsEl('pointSaleProvince').value=p.province||'';settingsEl('pointSaleLat').value=p.lat??'';settingsEl('pointSaleLng').value=p.lng??'';settingsEl('pointSaleMapsUrl').value=p.mapsUrl||'';pointSaleExistingLogoUrl=p.logoUrl||'';pointSalePendingLogoFile=p.logoFile||null;settingsEl('pointSaleLogoFile').value='';previewPointSaleLogo(pointSalePendingLogoFile?URL.createObjectURL(pointSalePendingLogoFile):pointSaleExistingLogoUrl);settingsEl('addPointSale').textContent='Guardar cambios del punto';settingsEl('cancelPointSaleEdit').hidden=false;};
+      const del=node('button','Eliminar');del.type='button';del.onclick=()=>{if(!confirm('¿Eliminar el punto de venta “'+p.name+'”?'))return;pointSalesDraft=pointSalesDraft.filter(x=>x.id!==p.id);if(editingPointSaleId===p.id)clearPointSaleInputs();renderPointSalesAdmin();};
       actions.append(edit,del);card.append(actions);box.append(card);
     });
   }
+  settingsEl('pointSaleLogoFile').addEventListener('change',()=>{
+    const file=settingsEl('pointSaleLogoFile').files[0];if(!file)return;
+    if(file.type!=='image/png'){settingsEl('pointSaleLogoFile').value='';pointSalePendingLogoFile=null;previewPointSaleLogo(pointSaleExistingLogoUrl);C.msg('pointSalesMsg','El logo del comercio debe estar en formato PNG.','error');return;}
+    if(file.size>5*1024*1024){settingsEl('pointSaleLogoFile').value='';pointSalePendingLogoFile=null;previewPointSaleLogo(pointSaleExistingLogoUrl);C.msg('pointSalesMsg','El logo debe pesar 5 MB o menos.','error');return;}
+    pointSalePendingLogoFile=file;previewPointSaleLogo(URL.createObjectURL(file));C.msg('pointSalesMsg','Logo seleccionado. Se subirá al presionar “Guardar personalización”.','ok');
+  });
+  settingsEl('removePointSaleLogo').onclick=()=>{pointSaleExistingLogoUrl='';pointSalePendingLogoFile=null;settingsEl('pointSaleLogoFile').value='';previewPointSaleLogo('');C.msg('pointSalesMsg','Logo quitado del formulario. Guardá los cambios para publicarlo.','');};
   settingsEl('addPointSale').onclick=()=>{
     const name=settingsEl('pointSaleName').value.trim(),address=settingsEl('pointSaleAddress').value.trim(),city=settingsEl('pointSaleCity').value.trim();
     if(!name||!address||!city){C.msg('pointSalesMsg','Completá nombre del comercio, dirección y localidad.','error');return;}
     const latRaw=settingsEl('pointSaleLat').value.trim(),lngRaw=settingsEl('pointSaleLng').value.trim();
     if((latRaw&&!lngRaw)||(!latRaw&&lngRaw)){C.msg('pointSalesMsg','Para ubicarlo en el mapa, completá latitud y longitud juntas.','error');return;}
-    const item={id:editingPointSaleId||('ps-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),name,whatsapp:settingsEl('pointSaleWhatsapp').value.trim(),address,city,province:settingsEl('pointSaleProvince').value.trim(),lat:latRaw?Number(latRaw):'',lng:lngRaw?Number(lngRaw):'',mapsUrl:settingsEl('pointSaleMapsUrl').value.trim()};
+    const item={id:editingPointSaleId||('ps-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),name,whatsapp:settingsEl('pointSaleWhatsapp').value.trim(),address,city,province:settingsEl('pointSaleProvince').value.trim(),lat:latRaw?Number(latRaw):'',lng:lngRaw?Number(lngRaw):'',mapsUrl:settingsEl('pointSaleMapsUrl').value.trim(),logoUrl:pointSaleExistingLogoUrl||'',logoFile:pointSalePendingLogoFile||null};
     if(latRaw&&(!Number.isFinite(item.lat)||item.lat < -90||item.lat > 90||!Number.isFinite(item.lng)||item.lng < -180||item.lng > 180)){C.msg('pointSalesMsg','Revisá las coordenadas ingresadas.','error');return;}
     if(editingPointSaleId)pointSalesDraft=pointSalesDraft.map(p=>p.id===editingPointSaleId?item:p);else pointSalesDraft.push(item);
     clearPointSaleInputs();renderPointSalesAdmin();C.msg('pointSalesMsg','Punto preparado. Recordá presionar “Guardar personalización” para publicarlo.','ok');
@@ -281,6 +291,12 @@
       const logoFile=settingsEl('logoFile').files[0],adFile=settingsEl('adImageFile').files[0];
       if(logoFile)siteSettings.logoUrl=await uploadBrandAsset(logoFile,'logo');
       if(adFile)siteSettings.ad.imageUrl=await uploadBrandAsset(adFile,'tag');
+      const publishedPointSales=[];
+      for(const p of pointSalesDraft){
+        let logoUrl=p.logoUrl||'';
+        if(p.logoFile){if(p.logoFile.type!=='image/png')throw new Error('El logo de cada comercio debe estar en formato PNG.');if(p.logoFile.size>5*1024*1024)throw new Error('Cada logo de comercio debe pesar 5 MB o menos.');logoUrl=await uploadBrandAsset(p.logoFile,'punto-venta-'+String(p.id||'comercio').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,40));}
+        publishedPointSales.push({id:p.id,name:p.name,whatsapp:p.whatsapp||'',address:p.address,city:p.city,province:p.province||'',lat:p.lat??'',lng:p.lng??'',mapsUrl:p.mapsUrl||'',logoUrl});
+      }
       siteSettings={
         brandName:settingsEl('brandNameInput').value.trim()||'by Fraam Mascotas',
         brandTagline:settingsEl('brandTaglineInput').value.trim()||'TAG MASCOTAS',
@@ -288,7 +304,7 @@
         colors:{bg:settingsEl('colorBg').value,panel:settingsEl('colorPanel').value,text:settingsEl('colorText').value,muted:settingsEl('colorMuted').value,accent:settingsEl('colorAccent').value,border:settingsEl('colorBorder').value},
         home:{eyebrow:settingsEl('homeEyebrow').value.trim(),title:settingsEl('homeTitle').value.trim(),titleHighlight:settingsEl('homeTitleHighlight').value.trim(),lead:settingsEl('homeLead').value.trim(),adminButtonText:settingsEl('homeAdminButtonText').value.trim()||'Acceso administrador',howButtonText:settingsEl('homeHowButtonText').value.trim()||'Cómo funciona',step1Title:settingsEl('homeStep1Title').value.trim(),step1Description:settingsEl('homeStep1Description').value.trim(),step2Title:settingsEl('homeStep2Title').value.trim(),step2Description:settingsEl('homeStep2Description').value.trim(),step3Title:settingsEl('homeStep3Title').value.trim(),step3Description:settingsEl('homeStep3Description').value.trim()},
         profileHomeButtonText:settingsEl('profileHomeButtonText').value.trim()||'Conocé by Fraam Mascotas',
-        pointSales:pointSalesDraft.map(p=>({...p})),
+        pointSales:publishedPointSales,
         ad:{enabled:settingsEl('adEnabled').checked,title:settingsEl('adTitle').value.trim(),description:settingsEl('adDescription').value.trim(),price:settingsEl('adPrice').value.trim(),whatsapp:settingsEl('adWhatsApp').value.replace(/\D/g,''),buttonText:settingsEl('adButtonText').value.trim()||'Consultar por WhatsApp',imageUrl:siteSettings.ad.imageUrl||''}
       };
       // Guardamos el JSON con MIME image/png para compatibilidad con buckets que solo permiten imágenes. El contenido sigue siendo JSON y las páginas públicas lo leen con response.json().

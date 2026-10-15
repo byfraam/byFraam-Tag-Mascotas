@@ -47,3 +47,14 @@ footer{border-top:1px solid var(--border);padding:24px;text-align:center;color:v
 [hidden]{display:none!important}
 canvas{max-width:100%;background:white;padding:10px;border-radius:8px}
 @media(max-width:650px){.features,.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero{padding-top:45px}.features{margin-top:40px}.top{padding:18px;letter-spacing:2px}.panel,.features article{padding:16px}.tag-ad{grid-template-columns:1fr;gap:16px;padding:18px;margin-top:20px}.tag-ad-image-wrap img{max-height:240px}.brand-lockup img{max-width:100px;max-height:40px}.brand-lockup{gap:8px}}
+
+
+/* Transparencia de logos PNG: el blanco no debe tapar el fondo del sitio.
+   El canvas del QR conserva su fondo blanco intencionalmente. */
+.brand-lockup img,
+#logoPreview,
+#pointSaleLogoPreview,
+#pointSalesList img,
+.item img,
+img { background-color: transparent !important; }
+#pointSalesList article > div { background: transparent !important; }

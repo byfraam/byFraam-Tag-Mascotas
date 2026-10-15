@@ -37,6 +37,10 @@
           <div class="field"><label for="colorAccent">Color de botones y destacados</label><input id="colorAccent" type="color" value="#d6ff65"></div>
           <div class="field"><label for="colorBorder">Bordes</label><input id="colorBorder" type="color" value="#363636"></div>
         </div>
+        <h3 style="margin-top:24px">Carrusel de imágenes de portada</h3>
+        <p class="muted">Cargá hasta 8 imágenes que aparecerán al comienzo de la página principal. Admite JPG, PNG, WebP (incluido animado) y GIF animado; máximo 8 MB por archivo. Para banners, recomendamos imágenes horizontales de 1600 × 600 px.</p>
+        <div class="field full"><label for="carouselFiles">Agregar imágenes (podés seleccionar varias)</label><input id="carouselFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" multiple><p class="muted" style="margin:6px 0 0">El orden de esta lista es el orden en el carrusel. Los cambios se publican al presionar «Guardar personalización».</p></div>
+        <div id="carouselAdminList" class="list" style="margin-top:12px"></div>
         <h3 style="margin-top:24px">Página principal</h3>
         <p class="muted">Personalizá el contenido que ve quien visita la página pública principal.</p>
         <div class="grid">
@@ -171,14 +175,15 @@
     brandName:'by Fraam Mascotas', brandTagline:'TAG MASCOTAS', logoUrl:'',
     colors:{bg:'#101010',panel:'#1b1b1b',text:'#f5f5f5',muted:'#aaaaaa',accent:'#d6ff65',border:'#363636'},
     home:{eyebrow:'UN CAMINO DE VUELTA A CASA',title:'Su mundo es enorme.',titleHighlight:'Que volver a casa sea simple.',lead:'Identificación para mascotas mediante QR, con un perfil público de contacto y un sistema de avisos para ayudar a reunirlas con su familia.',adminButtonText:'Acceso administrador',howButtonText:'Cómo funciona',step1Title:'01 · Identificá',step1Description:'Registrá a tu mascota y generá su código QR descargable.',step2Title:'02 · Compartí',step2Description:'Colocá el QR en su chapita para abrir su perfil desde cualquier teléfono.',step3Title:'03 · Reuní',step3Description:'Quien la encuentre puede contactar a su familia o enviar un aviso privado.'},
-    profileHomeButtonText:'Conocé by Fraam Mascotas', pointSales:[],
+    profileHomeButtonText:'Conocé by Fraam Mascotas', pointSales:[], carousel:[],
     ad:{enabled:false,title:'Identificá a tu mascota con un Tag QR',description:'Una identificación práctica para que quien la encuentre pueda acceder a su perfil y ayudarla a volver a casa.',price:'',whatsapp:'',buttonText:'Consultar por WhatsApp',imageUrl:''}
   };
   let siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));
   const settingsEl=id=>document.getElementById(id);
+  let carouselDraft=[];
   function mergeSettings(raw){
     const v=raw&&typeof raw==='object'?raw:{};
-    return {...defaultSiteSettings,...v,colors:{...defaultSiteSettings.colors,...(v.colors||{})},home:{...defaultSiteSettings.home,...(v.home||{})},ad:{...defaultSiteSettings.ad,...(v.ad||{})},pointSales:Array.isArray(v.pointSales)?v.pointSales:[]};
+    return {...defaultSiteSettings,...v,colors:{...defaultSiteSettings.colors,...(v.colors||{})},home:{...defaultSiteSettings.home,...(v.home||{})},ad:{...defaultSiteSettings.ad,...(v.ad||{})},pointSales:Array.isArray(v.pointSales)?v.pointSales:[],carousel:Array.isArray(v.carousel)?v.carousel:[]};
   }
   function setPreview(wrapId,imgId,url){
     const wrap=settingsEl(wrapId),img=settingsEl(imgId);
@@ -215,8 +220,33 @@
     settingsEl('adButtonText').value=siteSettings.ad.buttonText||'Consultar por WhatsApp';
     setPreview('logoPreviewWrap','logoPreview',siteSettings.logoUrl);
     setPreview('adPreviewWrap','adPreview',siteSettings.ad.imageUrl);
-    pointSalesDraft=(siteSettings.pointSales||[]).map(p=>({...p}));renderPointSalesAdmin();
+    pointSalesDraft=(siteSettings.pointSales||[]).map(p=>({...p}));renderPointSalesAdmin();renderCarouselAdmin();
   }
+  function renderCarouselAdmin(){
+    const box=settingsEl('carouselAdminList');if(!box)return;box.replaceChildren();
+    if(!carouselDraft.length){box.append(node('p','Todavía no hay imágenes en el carrusel.','muted'));return;}
+    carouselDraft.forEach((slide,index)=>{
+      const item=node('article',undefined,'item');item.style.cssText='display:grid;grid-template-columns:minmax(100px,220px) minmax(0,1fr);gap:14px;align-items:center';
+      const img=document.createElement('img');img.src=slide.file?slide.previewUrl:slide.url;img.alt=slide.alt||('Imagen '+(index+1));img.style.cssText='display:block;width:100%;max-height:120px;object-fit:cover;border-radius:10px;background:#111';item.append(img);
+      const details=node('div');details.append(node('strong','Imagen '+(index+1)),node('p',slide.alt||slide.file?.name||'Imagen de portada','muted'));
+      const actions=node('div',undefined,'row');actions.style.cssText='display:flex;flex-wrap:wrap;gap:7px;margin-top:8px';
+      const up=node('button','Subir');up.type='button';up.disabled=index===0;up.onclick=()=>{[carouselDraft[index-1],carouselDraft[index]]=[carouselDraft[index],carouselDraft[index-1]];renderCarouselAdmin();};
+      const down=node('button','Bajar');down.type='button';down.disabled=index===carouselDraft.length-1;down.onclick=()=>{[carouselDraft[index+1],carouselDraft[index]]=[carouselDraft[index],carouselDraft[index+1]];renderCarouselAdmin();};
+      const remove=node('button','Quitar');remove.type='button';remove.className='danger';remove.onclick=()=>{const removed=carouselDraft.splice(index,1)[0];if(removed?.previewUrl)URL.revokeObjectURL(removed.previewUrl);renderCarouselAdmin();};
+      actions.append(up,down,remove);details.append(actions);item.append(details);box.append(item);
+    });
+  }
+  settingsEl('carouselFiles').addEventListener('change',()=>{
+    const input=settingsEl('carouselFiles'),files=Array.from(input.files||[]);if(!files.length)return;
+    const allowed=['image/jpeg','image/png','image/webp','image/gif'];
+    if(carouselDraft.length+files.length>8){C.msg('settingsMsg','El carrusel admite un máximo de 8 imágenes.','error');input.value='';return;}
+    for(const file of files){
+      if(!allowed.includes(file.type)){C.msg('settingsMsg','Usá imágenes JPG, PNG, WebP o GIF.','error');input.value='';return;}
+      if(file.size>8*1024*1024){C.msg('settingsMsg','Cada imagen del carrusel debe pesar 8 MB o menos.','error');input.value='';return;}
+    }
+    files.forEach(file=>carouselDraft.push({file,previewUrl:URL.createObjectURL(file),alt:file.name.replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ')}));
+    input.value='';renderCarouselAdmin();C.msg('settingsMsg','Imágenes añadidas al carrusel. Presioná “Guardar personalización” para publicarlas.','ok');
+  });
   let pointSalesDraft=[];let editingPointSaleId=null;let pointSaleExistingLogoUrl='';let pointSalePendingLogoFile=null;
   const pointSaleInputIds=['pointSaleName','pointSaleWhatsapp','pointSaleAddress','pointSaleCity','pointSaleProvince','pointSaleLat','pointSaleLng','pointSaleMapsUrl'];
   function previewPointSaleLogo(url){setPreview('pointSaleLogoPreviewWrap','pointSaleLogoPreview',url);}
@@ -262,6 +292,7 @@
       const response=await fetch(url,{cache:'no-store'});
       if(response.ok)siteSettings=mergeSettings(await response.json());
       pointSalesDraft=siteSettings.pointSales.map(p=>({...p}));
+      carouselDraft=siteSettings.carousel.map(slide=>({...slide}));
     }catch(err){console.warn('Se usarán los ajustes predeterminados del sitio:',err);}
     fillSettingsForm();
   }
@@ -275,13 +306,23 @@
     if(error)throw error;
     return db.storage.from('pet-photos').getPublicUrl(path).data.publicUrl;
   }
+  async function uploadCarouselAsset(file,index){
+    const allowed=['image/jpeg','image/png','image/webp','image/gif'];
+    if(!allowed.includes(file.type))throw new Error('El carrusel admite JPG, PNG, WebP o GIF.');
+    if(file.size>8*1024*1024)throw new Error('Cada imagen del carrusel debe pesar 8 MB o menos.');
+    const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':file.type==='image/gif'?'gif':'jpg';
+    const path='homepage-carousel/slide-'+Date.now()+'-'+index+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+    const {error}=await db.storage.from('pet-photos').upload(path,file,{upsert:false,contentType:file.type,cacheControl:'3600'});
+    if(error)throw error;
+    return db.storage.from('pet-photos').getPublicUrl(path).data.publicUrl;
+  }
   settingsEl('logoFile').addEventListener('change',()=>{const f=settingsEl('logoFile').files[0];if(f)setPreview('logoPreviewWrap','logoPreview',URL.createObjectURL(f));});
   settingsEl('adImageFile').addEventListener('change',()=>{const f=settingsEl('adImageFile').files[0];if(f)setPreview('adPreviewWrap','adPreview',URL.createObjectURL(f));});
   settingsEl('removeLogo').onclick=()=>{siteSettings.logoUrl='';settingsEl('logoFile').value='';setPreview('logoPreviewWrap','logoPreview','');};
   settingsEl('removeAdImage').onclick=()=>{siteSettings.ad.imageUrl='';settingsEl('adImageFile').value='';setPreview('adPreviewWrap','adPreview','');};
   settingsEl('resetSiteSettings').onclick=()=>{
     if(!confirm('¿Restablecer logo, colores, página principal, botones y publicidad a los valores predeterminados? Guardá los cambios para publicarlos.'))return;
-    siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));pointSalesDraft=[];clearPointSaleInputs();fillSettingsForm();
+    siteSettings=JSON.parse(JSON.stringify(defaultSiteSettings));pointSalesDraft=[];carouselDraft.forEach(s=>{if(s.previewUrl)URL.revokeObjectURL(s.previewUrl);});carouselDraft=[];clearPointSaleInputs();settingsEl('carouselFiles').value='';fillSettingsForm();
     settingsEl('logoFile').value='';settingsEl('adImageFile').value='';
     C.msg('settingsMsg','Valores predeterminados cargados. Presioná Guardar personalización para aplicarlos.','');
   };
@@ -291,6 +332,8 @@
       const logoFile=settingsEl('logoFile').files[0],adFile=settingsEl('adImageFile').files[0];
       if(logoFile)siteSettings.logoUrl=await uploadBrandAsset(logoFile,'logo');
       if(adFile)siteSettings.ad.imageUrl=await uploadBrandAsset(adFile,'tag');
+      const publishedCarousel=[];
+      for(let i=0;i<carouselDraft.length;i++){const slide=carouselDraft[i];let url=slide.url||'';if(slide.file)url=await uploadCarouselAsset(slide.file,i+1);if(url)publishedCarousel.push({url,alt:slide.alt||('Imagen destacada '+(i+1))});}
       const publishedPointSales=[];
       for(const p of pointSalesDraft){
         let logoUrl=p.logoUrl||'';
@@ -305,13 +348,14 @@
         home:{eyebrow:settingsEl('homeEyebrow').value.trim(),title:settingsEl('homeTitle').value.trim(),titleHighlight:settingsEl('homeTitleHighlight').value.trim(),lead:settingsEl('homeLead').value.trim(),adminButtonText:settingsEl('homeAdminButtonText').value.trim()||'Acceso administrador',howButtonText:settingsEl('homeHowButtonText').value.trim()||'Cómo funciona',step1Title:settingsEl('homeStep1Title').value.trim(),step1Description:settingsEl('homeStep1Description').value.trim(),step2Title:settingsEl('homeStep2Title').value.trim(),step2Description:settingsEl('homeStep2Description').value.trim(),step3Title:settingsEl('homeStep3Title').value.trim(),step3Description:settingsEl('homeStep3Description').value.trim()},
         profileHomeButtonText:settingsEl('profileHomeButtonText').value.trim()||'Conocé by Fraam Mascotas',
         pointSales:publishedPointSales,
+        carousel:publishedCarousel,
         ad:{enabled:settingsEl('adEnabled').checked,title:settingsEl('adTitle').value.trim(),description:settingsEl('adDescription').value.trim(),price:settingsEl('adPrice').value.trim(),whatsapp:settingsEl('adWhatsApp').value.replace(/\D/g,''),buttonText:settingsEl('adButtonText').value.trim()||'Consultar por WhatsApp',imageUrl:siteSettings.ad.imageUrl||''}
       };
       // Guardamos el JSON con MIME image/png para compatibilidad con buckets que solo permiten imágenes. El contenido sigue siendo JSON y las páginas públicas lo leen con response.json().
       const blob=new Blob([JSON.stringify(siteSettings,null,2)],{type:'image/png'});
       const {error}=await db.storage.from('pet-photos').upload(SETTINGS_PATH,blob,{upsert:true,contentType:'image/png',cacheControl:'0'});
       if(error)throw error;
-      settingsEl('logoFile').value='';settingsEl('adImageFile').value='';fillSettingsForm();
+      carouselDraft=publishedCarousel.map(slide=>({...slide}));settingsEl('carouselFiles').value='';settingsEl('logoFile').value='';settingsEl('adImageFile').value='';fillSettingsForm();
       C.msg('settingsMsg','Personalización guardada. Ya se mostrará en la página principal y en los perfiles públicos.','ok');
       C.msg('pointSalesMsg','Puntos de venta guardados y publicados.','ok');
     }catch(err){console.error(err);C.msg('settingsMsg','No se pudo guardar. '+(err.message||'Revisá la conexión y los permisos del almacenamiento.'),'error');}

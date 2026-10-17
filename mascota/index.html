@@ -1,7 +1,77 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111"><title>Perfil de mascota | by Fraam</title><link rel="stylesheet" href="../style.css"></head><body><header class="top"><a class="brand brand-lockup" href="../" target="_blank" rel="noopener" aria-label="Abrir página principal en otra pestaña"><img id="siteLogo" alt="Logo de la marca" hidden><span id="siteBrandText">by Fraam Mascotas</span></a><span id="siteHeaderLabel">TAG MASCOTAS</span></header><main class="page narrow"><div id="status" class="status" role="status">Cargando perfil...</div><section id="profile" class="panel" hidden><div id="photo"></div><div style="padding-top:16px"><p class="eyebrow">MASCOTA IDENTIFICADA</p><h1 id="name" style="font-size:40px"></h1><p id="species" class="muted"></p><p id="breed" class="muted"></p><p id="description"></p><a id="call" class="btn primary" hidden>Contactar por teléfono</a><a id="whatsapp" class="btn primary" style="margin-top:10px" target="_blank" rel="noopener" hidden>Contactar por WhatsApp</a><a id="report" class="btn" style="margin-top:10px" hidden>Avisar que la encontré</a></div></section>
-<section id="tagAd" class="tag-ad profile-ad" hidden aria-label="Publicidad de Tags"><div class="tag-ad-image-wrap" id="tagAdImageWrap" hidden><img id="tagAdImage" alt="Tag QR para mascotas"></div><div class="tag-ad-copy"><p class="eyebrow">IDENTIFICACIÓN INTELIGENTE</p><h2 id="tagAdTitle"></h2><p id="tagAdDescription"></p><p id="tagAdPrice" class="tag-ad-price" hidden></p><a id="tagAdButton" class="btn primary" target="_blank" rel="noopener" hidden>Consultar por WhatsApp</a></div></section>
-<div style="text-align:center;margin:24px 0 16px"><a id="profileHomeButton" class="btn" href="../" target="_blank" rel="noopener" style="display:inline-block">Conocé by Fraam Mascotas</a></div>
-<p class="muted" style="font-size:12px;text-align:center">La información visible fue autorizada por la familia de la mascota.</p></main><footer><span id="siteFooterText">BY FRAAM STUDIO · TAG MASCOTAS</span></footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="../js/config.js"></script><script src="../js/supabase.js"></script><script>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111">
+<title>Perfil de mascota | by Fraam</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+/* Diseño visual de la ficha pública. No modifica la lógica del perfil ni del QR. */
+.pet-profile-panel{overflow:hidden;padding:0!important;border-radius:22px}
+.pet-profile-photo{width:100%;display:flex;justify-content:center;align-items:center;background:linear-gradient(145deg,var(--panel),var(--bg));padding:18px 18px 0;box-sizing:border-box}
+.pet-profile-photo:empty{display:none}
+.pet-profile-photo .photo{display:block;width:100%;max-width:440px;max-height:390px;aspect-ratio:4/3;object-fit:cover;border-radius:16px}
+.pet-profile-content{padding:clamp(18px,4vw,30px)}
+.pet-profile-heading{text-align:center;margin-bottom:22px}
+.pet-profile-heading .eyebrow{margin:0 0 8px}
+.pet-profile-heading h1{font-size:clamp(2rem,7vw,2.8rem)!important;line-height:1.08;margin:0 0 10px;overflow-wrap:anywhere}
+.pet-profile-heading .pet-tagline{margin:0;color:var(--muted);font-size:.95rem}
+.pet-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.pet-info-card{min-width:0;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--bg);box-sizing:border-box}
+.pet-info-card .pet-info-label{display:flex;align-items:center;gap:8px;margin:0 0 8px;color:var(--muted);font-size:.76rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.pet-info-card .pet-info-icon{display:inline-grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:16px}
+.pet-info-card .pet-info-value{margin:0;line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}
+.pet-info-card.description-card{grid-column:1/-1}
+.pet-profile-actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:22px}
+.pet-profile-actions .btn{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:48px;box-sizing:border-box;margin:0!important}
+#status{margin-bottom:16px}
+@media(max-width:480px){.pet-profile-panel{border-radius:18px}.pet-profile-photo{padding:12px 12px 0}.pet-profile-photo .photo{border-radius:13px;max-height:320px}.pet-profile-content{padding:18px 14px}.pet-info-grid{gap:9px}.pet-info-card{padding:13px 11px;border-radius:13px}.pet-info-card .pet-info-label{font-size:.68rem;gap:6px}.pet-info-card .pet-info-icon{width:27px;height:27px;flex-basis:27px;border-radius:8px}.pet-info-card .pet-info-value{font-size:.94rem}}
+@media(prefers-reduced-motion:reduce){.pet-info-card{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand brand-lockup" href="../" target="_blank" rel="noopener" aria-label="Abrir página principal en otra pestaña"><img id="siteLogo" alt="Logo de la marca" hidden><span id="siteBrandText">by Fraam Mascotas</span></a><span id="siteHeaderLabel">TAG MASCOTAS</span></header>
+<main class="page narrow">
+  <div id="status" class="status" role="status">Cargando perfil...</div>
+  <section id="profile" class="panel pet-profile-panel" hidden>
+    <div id="photo" class="pet-profile-photo"></div>
+    <div class="pet-profile-content">
+      <div class="pet-profile-heading">
+        <p class="eyebrow">MASCOTA IDENTIFICADA</p>
+        <h1 id="name"></h1>
+        <p class="pet-tagline">Este es su perfil de identificación</p>
+      </div>
+      <div class="pet-info-grid">
+        <article id="speciesCard" class="pet-info-card" hidden>
+          <p class="pet-info-label"><span class="pet-info-icon" aria-hidden="true">🐾</span> Tipo de mascota</p>
+          <p id="species" class="pet-info-value"></p>
+        </article>
+        <article id="breedCard" class="pet-info-card" hidden>
+          <p class="pet-info-label"><span class="pet-info-icon" aria-hidden="true">✦</span> Raza</p>
+          <p id="breed" class="pet-info-value"></p>
+        </article>
+        <article id="descriptionCard" class="pet-info-card description-card" hidden>
+          <p class="pet-info-label"><span class="pet-info-icon" aria-hidden="true">ℹ</span> Información importante</p>
+          <p id="description" class="pet-info-value"></p>
+        </article>
+      </div>
+      <div class="pet-profile-actions">
+        <a id="call" class="btn primary" hidden>Contactar por teléfono</a>
+        <a id="whatsapp" class="btn primary" target="_blank" rel="noopener" hidden>Contactar por WhatsApp</a>
+        <a id="report" class="btn" hidden>Avisar que la encontré</a>
+      </div>
+    </div>
+  </section>
+  <section id="tagAd" class="tag-ad profile-ad" hidden aria-label="Publicidad de Tags"><div class="tag-ad-image-wrap" id="tagAdImageWrap" hidden><img id="tagAdImage" alt="Tag QR para mascotas"></div><div class="tag-ad-copy"><p class="eyebrow">IDENTIFICACIÓN INTELIGENTE</p><h2 id="tagAdTitle"></h2><p id="tagAdDescription"></p><p id="tagAdPrice" class="tag-ad-price" hidden></p><a id="tagAdButton" class="btn primary" target="_blank" rel="noopener" hidden>Consultar por WhatsApp</a></div></section>
+  <div style="text-align:center;margin:24px 0 16px"><a id="profileHomeButton" class="btn" href="../" target="_blank" rel="noopener" style="display:inline-block">Conocé by Fraam Mascotas</a></div>
+  <p class="muted" style="font-size:12px;text-align:center">La información visible fue autorizada por la familia de la mascota.</p>
+</main>
+<footer><span id="siteFooterText">BY FRAAM STUDIO · TAG MASCOTAS</span></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script>
 (async()=>{
  const db=window.BF,el=id=>document.getElementById(id),tag=new URLSearchParams(location.search).get('id');
  function fail(t){el('status').textContent=t;el('profile').hidden=true;}
@@ -28,6 +98,17 @@
    console.error('No se pudo resolver el código del Tag:',tagState.error);
    fail('No encontramos una mascota con este código. Verificá que el Tag esté activado.');return;
  }
- if(error||!data||!data.length){console.error(error);fail('No encontramos una mascota con este código.');return;}const p=data[0];el('name').textContent=p.name;el('species').textContent=p.species||'';el('breed').textContent=p.breed?'Raza: '+p.breed:'';el('description').textContent=p.description||'';if(p.photo_url){const img=document.createElement('img');img.src=p.photo_url;img.alt='Foto de '+p.name;img.className='photo';img.referrerPolicy='no-referrer';el('photo').append(img);}if(p.public_contact_phone&&/^[0-9+().\s-]{6,30}$/.test(p.public_contact_phone)){el('call').href='tel:'+p.public_contact_phone.replace(/[^\d+]/g,'');el('call').hidden=false;}if(p.public_whatsapp){const n=p.public_whatsapp.replace(/\D/g,'');if(n.length>=8&&n.length<=15){el('whatsapp').href='https://wa.me/'+n;el('whatsapp').hidden=false;}}el('report').href='../reportar/?id='+encodeURIComponent(tag);el('report').hidden=false;el('status').textContent=p.is_missing?'¡Esta mascota está reportada como perdida!':'Perfil de mascota identificada';if(p.is_missing)el('status').classList.add('lost');el('profile').hidden=false;
+ if(error||!data||!data.length){console.error(error);fail('No encontramos una mascota con este código.');return;}
+ const p=data[0];
+ el('name').textContent=p.name||'Mascota';
+ el('species').textContent=p.species||'';el('speciesCard').hidden=!p.species;
+ el('breed').textContent=p.breed?'Raza: '+p.breed:'';el('breedCard').hidden=!p.breed;
+ el('description').textContent=p.description||'';el('descriptionCard').hidden=!p.description;
+ if(p.photo_url){const img=document.createElement('img');img.src=p.photo_url;img.alt='Foto de '+p.name;img.className='photo';img.referrerPolicy='no-referrer';el('photo').append(img);}
+ if(p.public_contact_phone&&/^[0-9+().\s-]{6,30}$/.test(p.public_contact_phone)){el('call').href='tel:'+p.public_contact_phone.replace(/[^\d+]/g,'');el('call').hidden=false;}
+ if(p.public_whatsapp){const n=p.public_whatsapp.replace(/\D/g,'');if(n.length>=8&&n.length<=15){el('whatsapp').href='https://wa.me/'+n;el('whatsapp').hidden=false;}}
+ el('report').href='../reportar/?id='+encodeURIComponent(tag);el('report').hidden=false;el('status').textContent=p.is_missing?'¡Esta mascota está reportada como perdida!':'Perfil de mascota identificada';if(p.is_missing)el('status').classList.add('lost');el('profile').hidden=false;
 })();
-</script></body></html>
+</script>
+</body>
+</html>

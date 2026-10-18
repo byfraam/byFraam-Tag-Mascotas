@@ -11,7 +11,8 @@
 .pet-profile-panel{overflow:hidden;padding:0!important;border-radius:22px}
 .pet-profile-photo{width:100%;display:flex;justify-content:center;align-items:center;background:linear-gradient(145deg,var(--panel),var(--bg));padding:18px 18px 0;box-sizing:border-box}
 .pet-profile-photo:empty{display:none}
-.pet-profile-photo .photo{display:block;width:100%;max-width:440px;max-height:390px;aspect-ratio:4/3;object-fit:cover;border-radius:16px}
+/* La foto conserva su proporción original y se muestra completa, sin recortes. */
+.pet-profile-photo .photo{display:block;width:100%;max-width:440px;height:auto;max-height: none;aspect-ratio:auto;object-fit:contain;object-position:center;border-radius:16px}
 .pet-profile-content{padding:clamp(18px,4vw,30px)}
 .pet-profile-heading{text-align:center;margin-bottom:22px}
 .pet-profile-heading .eyebrow{margin:0 0 8px}
@@ -26,7 +27,7 @@
 .pet-profile-actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:22px}
 .pet-profile-actions .btn{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:48px;box-sizing:border-box;margin:0!important}
 #status{margin-bottom:16px}
-@media(max-width:480px){.pet-profile-panel{border-radius:18px}.pet-profile-photo{padding:12px 12px 0}.pet-profile-photo .photo{border-radius:13px;max-height:320px}.pet-profile-content{padding:18px 14px}.pet-info-grid{gap:9px}.pet-info-card{padding:13px 11px;border-radius:13px}.pet-info-card .pet-info-label{font-size:.68rem;gap:6px}.pet-info-card .pet-info-icon{width:27px;height:27px;flex-basis:27px;border-radius:8px}.pet-info-card .pet-info-value{font-size:.94rem}}
+@media(max-width:480px){.pet-profile-panel{border-radius:18px}.pet-profile-photo{padding:12px 12px 0}.pet-profile-photo .photo{border-radius:13px;max-height:none}.pet-profile-content{padding:18px 14px}.pet-info-grid{gap:9px}.pet-info-card{padding:13px 11px;border-radius:13px}.pet-info-card .pet-info-label{font-size:.68rem;gap:6px}.pet-info-card .pet-info-icon{width:27px;height:27px;flex-basis:27px;border-radius:8px}.pet-info-card .pet-info-value{font-size:.94rem}}
 @media(prefers-reduced-motion:reduce){.pet-info-card{scroll-behavior:auto}}
 </style>
 </head>
